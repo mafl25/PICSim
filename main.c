@@ -2,15 +2,19 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+
 typedef struct
 {
 	GObject *textProgram;
 	GObject *programBuffer;
 	FILE *file;
+	gboolean named;
+	char *filename;
 }fileStruct;
 
 static gboolean new_file_cb(GtkWidget *widget, gpointer data);
 static gboolean file_load_to_text_view_cb(GtkWidget *widget, gpointer data);
+static gboolean save_text_view_to_file(GtkWidget *widget, gpointer data);
 
 int main(int argc, char *argv[])
 {
@@ -18,6 +22,7 @@ int main(int argc, char *argv[])
 	GObject *window;
 	GObject *menu_item;
 	fileStruct openFile;
+	openFile.named = FALSE;
 
 	gtk_init(&argc, &argv);
 
@@ -43,7 +48,26 @@ int main(int argc, char *argv[])
 	g_object_unref(G_OBJECT(builder));
 	gtk_main();
 
+	free(openFile.filename);
 	return 0;
+}
+
+static gboolean save_text_view_to_file(GtkWidget *widget, gpointer data)
+{
+	fileStruct *fileSave = (fileStruct *)data;
+	GtkTextIter *start;
+	GtkTextIter *end;
+	char *text;
+
+	if(fileSave->named){
+		gtk_text_buffer_get_start_iter(GTK_TEXT_BUFFER(fileSave->programBuffer), start);
+		gtk_text_buffer_get_end_iter(GTK_TEXT_BUFFER(fileSave->programBuffer), end);
+		fileSave->file = fopen(fileSave->filename, "w");	
+		gtk_text_buffer_get_text(GTK_TEXT_BUFFER(fileSave->textProgram), start, end, TRUE);
+
+	}
+
+	return FALSE;
 }
 
 static gboolean file_load_to_text_view_cb(GtkWidget *widget, gpointer data)
@@ -65,6 +89,9 @@ static gboolean file_load_to_text_view_cb(GtkWidget *widget, gpointer data)
 	rewind(fileLoad->file);
 	free(text);
 
+	fileLoad->named =TRUE;
+	gtk_widget_show(GTK_WIDGET(fileLoad->textProgram));
+
 	return FALSE;
 }
 
@@ -85,12 +112,9 @@ static gboolean new_file_cb(GtkWidget *widget, gpointer data)
 	gint res = gtk_dialog_run(GTK_DIALOG(dialog));
 
 	if(res == GTK_RESPONSE_ACCEPT){
-		char *filename;
 		GtkFileChooser *chooser = GTK_FILE_CHOOSER(dialog);
-		filename = gtk_file_chooser_get_filename(chooser);
-		openFile->file = fopen(filename, "r");
-		g_print("%s\n", filename);
-		g_free(filename);
+		openFile->filename = gtk_file_chooser_get_filename(chooser);
+		openFile->file = fopen(openFile->filename, "r");
 	}
 
 	gtk_widget_destroy(dialog);
