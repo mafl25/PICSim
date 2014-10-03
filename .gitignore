@@ -1,4 +1,6 @@
 *.pyc
+*.asm~
+*.out
 *.py
 *.swp
 *.ui~
