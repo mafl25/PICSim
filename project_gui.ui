@@ -9,8 +9,8 @@
     <property name="can_focus">False</property>
     <property name="border_width">5</property>
     <property name="title" translatable="yes">PIC Sim</property>
-    <property name="default_width">600</property>
-    <property name="default_height">400</property>
+    <property name="default_width">1000</property>
+    <property name="default_height">600</property>
     <child>
       <object class="GtkBox" id="box1">
         <property name="visible">True</property>
@@ -181,87 +181,131 @@
           </packing>
         </child>
         <child>
-          <object class="GtkButtonBox" id="buttonbox1">
+          <object class="GtkToolbar" id="toolbar1">
             <property name="visible">True</property>
             <property name="can_focus">False</property>
-            <property name="layout_style">start</property>
+            <property name="toolbar_style">icons</property>
             <child>
-              <object class="GtkButton" id="button_assemble">
+              <object class="GtkToolButton" id="new_button">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <property name="tooltip_markup" translatable="yes">New File</property>
+                <property name="label" translatable="yes">New File</property>
+                <property name="use_underline">True</property>
+                <property name="stock_id">gtk-new</property>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="homogeneous">True</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkToolButton" id="open_button">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <property name="tooltip_markup" translatable="yes">Open File</property>
+                <property name="label" translatable="yes">Open File</property>
+                <property name="use_underline">True</property>
+                <property name="stock_id">gtk-open</property>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="homogeneous">True</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkToolButton" id="save_button">
+                <property name="related_action"/>
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <property name="tooltip_text" translatable="yes">Save</property>
+                <property name="label" translatable="yes">Save File</property>
+                <property name="use_underline">True</property>
+                <property name="stock_id">gtk-save</property>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="homogeneous">True</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkSeparatorToolItem" id="separatortoolitem1">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="homogeneous">False</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkToolButton" id="build_button">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <property name="tooltip_text" translatable="yes">Builds the program</property>
                 <property name="label" translatable="yes">Build</property>
-                <property name="visible">True</property>
-                <property name="can_focus">True</property>
-                <property name="receives_default">True</property>
-                <property name="image_position">top</property>
-                <property name="always_show_image">True</property>
+                <property name="use_underline">True</property>
+                <property name="stock_id">gtk-execute</property>
               </object>
               <packing>
                 <property name="expand">False</property>
-                <property name="fill">True</property>
-                <property name="position">0</property>
+                <property name="homogeneous">True</property>
               </packing>
             </child>
             <child>
-              <object class="GtkButton" id="button_play">
-                <property name="label">gtk-media-play</property>
+              <object class="GtkToolButton" id="play_button">
                 <property name="visible">True</property>
-                <property name="can_focus">True</property>
-                <property name="receives_default">True</property>
-                <property name="use_stock">True</property>
-                <property name="image_position">top</property>
-                <property name="always_show_image">True</property>
+                <property name="can_focus">False</property>
+                <property name="tooltip_text" translatable="yes">Plays the program</property>
+                <property name="label" translatable="yes">Play</property>
+                <property name="use_underline">True</property>
+                <property name="stock_id">gtk-media-play</property>
               </object>
               <packing>
                 <property name="expand">False</property>
-                <property name="fill">True</property>
-                <property name="position">1</property>
+                <property name="homogeneous">True</property>
               </packing>
             </child>
             <child>
-              <object class="GtkButton" id="button_step">
-                <property name="label">gtk-media-next</property>
+              <object class="GtkToolButton" id="Pause">
                 <property name="visible">True</property>
-                <property name="can_focus">True</property>
-                <property name="receives_default">True</property>
-                <property name="use_stock">True</property>
-                <property name="image_position">top</property>
-                <property name="always_show_image">True</property>
+                <property name="can_focus">False</property>
+                <property name="tooltip_text" translatable="yes">Pauses the program</property>
+                <property name="label" translatable="yes">Pause</property>
+                <property name="use_underline">True</property>
+                <property name="stock_id">gtk-media-pause</property>
               </object>
               <packing>
                 <property name="expand">False</property>
-                <property name="fill">True</property>
-                <property name="position">2</property>
+                <property name="homogeneous">True</property>
               </packing>
             </child>
             <child>
-              <object class="GtkButton" id="button_pause">
-                <property name="label">gtk-media-pause</property>
+              <object class="GtkToolButton" id="stop_button">
                 <property name="visible">True</property>
-                <property name="can_focus">True</property>
-                <property name="receives_default">True</property>
-                <property name="use_stock">True</property>
-                <property name="image_position">top</property>
-                <property name="always_show_image">True</property>
+                <property name="can_focus">False</property>
+                <property name="tooltip_text" translatable="yes">Stops the program</property>
+                <property name="label" translatable="yes">Stop</property>
+                <property name="use_underline">True</property>
+                <property name="stock_id">gtk-media-stop</property>
               </object>
               <packing>
                 <property name="expand">False</property>
-                <property name="fill">True</property>
-                <property name="position">3</property>
+                <property name="homogeneous">True</property>
               </packing>
             </child>
             <child>
-              <object class="GtkButton" id="button_stop">
-                <property name="label">gtk-media-stop</property>
+              <object class="GtkToolButton" id="next_button">
                 <property name="visible">True</property>
-                <property name="can_focus">True</property>
-                <property name="receives_default">True</property>
-                <property name="use_stock">True</property>
-                <property name="image_position">top</property>
-                <property name="always_show_image">True</property>
+                <property name="can_focus">False</property>
+                <property name="tooltip_text" translatable="yes">Steps to the next instruction</property>
+                <property name="label" translatable="yes">Next</property>
+                <property name="use_underline">True</property>
+                <property name="stock_id">gtk-media-next</property>
               </object>
               <packing>
                 <property name="expand">False</property>
-                <property name="fill">True</property>
-                <property name="position">4</property>
+                <property name="homogeneous">True</property>
               </packing>
             </child>
           </object>
@@ -300,8 +344,10 @@
                         <property name="label">gtk-open</property>
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
+                        <property name="accel_path">Ctrl+O</property>
                         <property name="use_underline">True</property>
                         <property name="use_stock">True</property>
+                        <accelerator key="o" signal="activate" modifiers="GDK_CONTROL_MASK"/>
                       </object>
                     </child>
                     <child>
@@ -426,6 +472,7 @@
           <packing>
             <property name="expand">False</property>
             <property name="fill">True</property>
+            <property name="pack_type">end</property>
             <property name="position">3</property>
           </packing>
         </child>

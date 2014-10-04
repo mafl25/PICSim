@@ -11,6 +11,7 @@ typedef struct
 	GObject *programBuffer;
 	GObject *textOutput;
 	GObject *outputBuffer;
+	GObject *label;
 	FILE *file;
 	char *filename;
 }fileStruct;
@@ -25,12 +26,14 @@ static gboolean open_file_cb(GtkWidget *widget, gpointer data);
 static gboolean file_load_to_text_view_cb(GtkWidget *widget, gpointer data);
 static gboolean save_text_view_to_file(GtkWidget *widget, gpointer data);
 static gboolean save_as_text_view_to_file(GtkWidget *widget, gpointer data);
+static gboolean new_file_cb(GtkWidget *widget, gpointer data);
 
 int main(int argc, char *argv[])
 {
 	GtkBuilder *builder;
 	GObject *window;
 	GObject *menu_item;
+	GObject *toolbar_button;
 
 	gtk_init(&argc, &argv);
 
@@ -47,6 +50,8 @@ int main(int argc, char *argv[])
 	openFile.programBuffer = gtk_builder_get_object(builder, "program_buffer");
 	openFile.textOutput = gtk_builder_get_object(builder, "text_output");
 	openFile.outputBuffer = gtk_builder_get_object(builder, "output_buffer");
+	openFile.label = gtk_builder_get_object(builder, "text_name");
+
 
 	menu_item = gtk_builder_get_object(builder, "quit_file");
 	g_signal_connect(menu_item, "activate", G_CALLBACK(gtk_main_quit), NULL);
@@ -56,12 +61,23 @@ int main(int argc, char *argv[])
 
 	menu_item = gtk_builder_get_object(builder, "save_as_file");
 	g_signal_connect(menu_item, "activate", G_CALLBACK(save_as_text_view_to_file), (gpointer)(&openFile));
-//	menu_item = gtk_builder_get_object(builder, "new_file");
-//	g_signal_connect(menu_item, "activate", G_CALLBACK(new_file_cb), NULL);
+	
+	menu_item = gtk_builder_get_object(builder, "new_file");
+	g_signal_connect(menu_item, "activate", G_CALLBACK(new_file_cb), (gpointer)(&openFile));
 	
 	menu_item = gtk_builder_get_object(builder, "open_file");
 	g_signal_connect(menu_item, "activate", G_CALLBACK(open_file_cb), (gpointer)(&openFile));
 	g_signal_connect(menu_item, "activate", G_CALLBACK(file_load_to_text_view_cb), (gpointer)(&openFile));
+
+	toolbar_button = gtk_builder_get_object(builder, "open_button");
+	g_signal_connect(toolbar_button, "clicked", G_CALLBACK(open_file_cb), (gpointer)(&openFile));
+	g_signal_connect(toolbar_button, "clicked", G_CALLBACK(file_load_to_text_view_cb), (gpointer)(&openFile));
+
+	toolbar_button = gtk_builder_get_object(builder, "save_button");
+	g_signal_connect(toolbar_button, "clicked", G_CALLBACK(save_text_view_to_file), (gpointer)(&openFile));
+
+	toolbar_button = gtk_builder_get_object(builder, "new_button");
+	g_signal_connect(toolbar_button, "clicked", G_CALLBACK(new_file_cb), (gpointer)(&openFile));
 
 	g_object_unref(G_OBJECT(builder));
 	gtk_main();
@@ -72,6 +88,31 @@ int main(int argc, char *argv[])
 	return 0;
 }
 
+static gboolean new_file_cb(GtkWidget *widget, gpointer data)
+{
+	fileStruct *newFile= (fileStruct *)data;
+	gboolean returnValue = FALSE;
+
+	returnValue = save_text_view_to_file(NULL, (gpointer)newFile);
+
+	if(returnValue){
+		if(newFile->filename != NULL){
+			g_free(newFile->filename);
+			newFile->filename = NULL;
+		}
+		fileClose(newFile);
+		
+		GtkTextIter start;
+		GtkTextIter end;
+		gtk_text_buffer_get_start_iter(GTK_TEXT_BUFFER(newFile->programBuffer), &start);
+		gtk_text_buffer_get_end_iter(GTK_TEXT_BUFFER(newFile->programBuffer), &end);
+		gtk_text_buffer_delete(GTK_TEXT_BUFFER(newFile->programBuffer), &start, &end);
+		gtk_label_set_text(GTK_LABEL(newFile->label), "Unsaved file");
+	}
+
+	return returnValue;
+
+}
 static gboolean save_as_text_view_to_file(GtkWidget *widget, gpointer data)
 {
 	GtkWidget *dialog;
@@ -109,6 +150,11 @@ static gboolean save_as_text_view_to_file(GtkWidget *widget, gpointer data)
 
 		fileSave->filename = gtk_file_chooser_get_filename(chooser);
 		returnValue = save_text_view_to_file(NULL, (gpointer)fileSave);
+		if(returnValue){
+			gchar *name = g_filename_display_basename(fileSave->filename);
+			gtk_label_set_text(GTK_LABEL(fileSave->label), name);
+			g_free(name);
+		}
 	}
 
 	gtk_widget_destroy(dialog);
@@ -144,7 +190,6 @@ static gboolean save_text_view_to_file(GtkWidget *widget, gpointer data)
 			fileClose(fileSave);
 		}	
 	}else{
-		//probaly shoulndt do this
 		returnValue = save_as_text_view_to_file(NULL, fileSave);
 	}
 
@@ -213,6 +258,10 @@ static gboolean open_file_cb(GtkWidget *widget, gpointer data)
 		if(!fileOpen(openFile)){
 			returnValue = FALSE;
 			g_free(openFile->filename);
+		}else{
+			gchar *name = g_filename_display_basename(openFile->filename);
+			gtk_label_set_text(GTK_LABEL(openFile->label), name);
+			g_free(name);
 		}
 	}
 
