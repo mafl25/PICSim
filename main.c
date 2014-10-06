@@ -1,4 +1,5 @@
 #include <gtk/gtk.h>
+#include <gdk/gdk.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -14,11 +15,12 @@ typedef struct
 	GObject *label;
 	FILE *file;
 	char *filename;
-}fileStruct;
+	GtkClipboard *clipboard;
+}textStruct;
 
-static gboolean fileClose(fileStruct *file);
-static gboolean fileOpen(fileStruct *file);
-static gboolean fileWrite(fileStruct *file);
+static gboolean fileClose(textStruct *file);
+static gboolean fileOpen(textStruct *file);
+static gboolean fileWrite(textStruct *file);
 
 static void outputPrint(GtkTextBuffer *outputBuffer, char * message, gboolean addNewline);
 
@@ -28,12 +30,15 @@ static gboolean save_text_view_to_file(GtkWidget *widget, gpointer data);
 static gboolean save_as_text_view_to_file(GtkWidget *widget, gpointer data);
 static gboolean new_file_cb(GtkWidget *widget, gpointer data);
 
+static gboolean copy_text(GtkWidget *widget, gpointer data);
+
 int main(int argc, char *argv[])
 {
 	GtkBuilder *builder;
 	GObject *window;
 	GObject *menu_item;
 	GObject *toolbar_button;
+
 
 	gtk_init(&argc, &argv);
 
@@ -43,54 +48,90 @@ int main(int argc, char *argv[])
 	window = gtk_builder_get_object(builder, "window1");
 	g_signal_connect(window, "destroy", G_CALLBACK(gtk_main_quit), NULL);
 
-	fileStruct openFile;
-	openFile.file = NULL;
-	openFile.filename = NULL;
-	openFile.textProgram = gtk_builder_get_object(builder, "text_program");
-	openFile.programBuffer = gtk_builder_get_object(builder, "program_buffer");
-	openFile.textOutput = gtk_builder_get_object(builder, "text_output");
-	openFile.outputBuffer = gtk_builder_get_object(builder, "output_buffer");
-	openFile.label = gtk_builder_get_object(builder, "text_name");
+
+	textStruct openText;
+	openText.file = NULL;
+	openText.filename = NULL;
+	openText.textProgram = gtk_builder_get_object(builder, "text_program");
+	openText.programBuffer = gtk_builder_get_object(builder, "program_buffer");
+	openText.textOutput = gtk_builder_get_object(builder, "text_output");
+	openText.outputBuffer = gtk_builder_get_object(builder, "output_buffer");
+	openText.label = gtk_builder_get_object(builder, "text_name");
+	openText.clipboard = gtk_clipboard_get(GDK_NONE);
 
 
 	menu_item = gtk_builder_get_object(builder, "quit_file");
 	g_signal_connect(menu_item, "activate", G_CALLBACK(gtk_main_quit), NULL);
 
 	menu_item = gtk_builder_get_object(builder, "save_file");
-	g_signal_connect(menu_item, "activate", G_CALLBACK(save_text_view_to_file), (gpointer)(&openFile));
+	g_signal_connect(menu_item, "activate", G_CALLBACK(save_text_view_to_file), (gpointer)(&openText));
 
 	menu_item = gtk_builder_get_object(builder, "save_as_file");
-	g_signal_connect(menu_item, "activate", G_CALLBACK(save_as_text_view_to_file), (gpointer)(&openFile));
+	g_signal_connect(menu_item, "activate", G_CALLBACK(save_as_text_view_to_file), (gpointer)(&openText));
 	
 	menu_item = gtk_builder_get_object(builder, "new_file");
-	g_signal_connect(menu_item, "activate", G_CALLBACK(new_file_cb), (gpointer)(&openFile));
+	g_signal_connect(menu_item, "activate", G_CALLBACK(new_file_cb), (gpointer)(&openText));
 	
 	menu_item = gtk_builder_get_object(builder, "open_file");
-	g_signal_connect(menu_item, "activate", G_CALLBACK(open_file_cb), (gpointer)(&openFile));
-	g_signal_connect(menu_item, "activate", G_CALLBACK(file_load_to_text_view_cb), (gpointer)(&openFile));
+	g_signal_connect(menu_item, "activate", G_CALLBACK(open_file_cb), (gpointer)(&openText));
+	g_signal_connect(menu_item, "activate", G_CALLBACK(file_load_to_text_view_cb), (gpointer)(&openText));
 
 	toolbar_button = gtk_builder_get_object(builder, "open_button");
-	g_signal_connect(toolbar_button, "clicked", G_CALLBACK(open_file_cb), (gpointer)(&openFile));
-	g_signal_connect(toolbar_button, "clicked", G_CALLBACK(file_load_to_text_view_cb), (gpointer)(&openFile));
+	g_signal_connect(toolbar_button, "clicked", G_CALLBACK(open_file_cb), (gpointer)(&openText));
+	g_signal_connect(toolbar_button, "clicked", G_CALLBACK(file_load_to_text_view_cb), (gpointer)(&openText));
 
 	toolbar_button = gtk_builder_get_object(builder, "save_button");
-	g_signal_connect(toolbar_button, "clicked", G_CALLBACK(save_text_view_to_file), (gpointer)(&openFile));
+	g_signal_connect(toolbar_button, "clicked", G_CALLBACK(save_text_view_to_file), (gpointer)(&openText));
 
 	toolbar_button = gtk_builder_get_object(builder, "new_button");
-	g_signal_connect(toolbar_button, "clicked", G_CALLBACK(new_file_cb), (gpointer)(&openFile));
+	g_signal_connect(toolbar_button, "clicked", G_CALLBACK(new_file_cb), (gpointer)(&openText));
+
+	toolbar_button = gtk_builder_get_object(builder, "copy_button");
+	g_signal_connect(toolbar_button, "clicked", G_CALLBACK(copy_text), (gpointer)window);
 
 	g_object_unref(G_OBJECT(builder));
 	gtk_main();
 
-	g_free(openFile.filename);
-	fileClose(&openFile);
+	g_free(openText.filename);
+	fileClose(&openText);
 
 	return 0;
 }
 
+static gboolean copy_text(GtkWidget *widget, gpointer data)
+{
+	//textStruct *text = (textStruct *)data;
+//	gtk_text_buffer_copy_clipboard(text->programBuffer)
+//	Creo que saldrá mejor hacer lo anterior o.o
+	GtkWidget *window = (GtkWidget *)data;
+
+	guint keyVal = GDK_KEY_c;
+	GdkKeymapKey *pKeys;
+	gint numKeys = 0;
+
+	gdk_keymap_get_entries_for_keyval(gdk_keymap_get_default(), keyVal, &pKeys, &numKeys);
+
+	GdkEvent *pressA = gdk_event_new(GDK_KEY_PRESS) ;
+	//gdk_event_set_device(pressA, )
+	pressA->key.type = GDK_KEY_PRESS;
+	pressA->key.window = gtk_widget_get_window(window); 
+	pressA->key.send_event = TRUE;
+	pressA->key.time = GDK_CURRENT_TIME;
+	pressA->key.state = GDK_SHIFT_MASK;
+	pressA->key.keyval = keyVal;
+
+	pressA->key.hardware_keycode = pKeys[0].keycode;
+	pressA->key.group = pKeys[0].group;
+	gtk_main_do_event(pressA);
+
+	gdk_event_free(pressA);
+
+	return TRUE;
+}
+
 static gboolean new_file_cb(GtkWidget *widget, gpointer data)
 {
-	fileStruct *newFile= (fileStruct *)data;
+	textStruct *newFile= (textStruct *)data;
 	gboolean returnValue = FALSE;
 
 	returnValue = save_text_view_to_file(NULL, (gpointer)newFile);
@@ -116,7 +157,7 @@ static gboolean new_file_cb(GtkWidget *widget, gpointer data)
 static gboolean save_as_text_view_to_file(GtkWidget *widget, gpointer data)
 {
 	GtkWidget *dialog;
-	fileStruct *fileSave = (fileStruct *)data;
+	textStruct *fileSave = (textStruct *)data;
 	gboolean returnValue = FALSE;
 
 	dialog = gtk_file_chooser_dialog_new("Save File",
@@ -164,7 +205,7 @@ static gboolean save_as_text_view_to_file(GtkWidget *widget, gpointer data)
 //Crear Back Up
 static gboolean save_text_view_to_file(GtkWidget *widget, gpointer data)
 {
-	fileStruct *fileSave = (fileStruct *)data;
+	textStruct *fileSave = (textStruct *)data;
 	GtkTextIter start;
 	GtkTextIter end;
 	gboolean returnValue = FALSE;
@@ -198,7 +239,7 @@ static gboolean save_text_view_to_file(GtkWidget *widget, gpointer data)
 
 static gboolean file_load_to_text_view_cb(GtkWidget *widget, gpointer data)
 {
-	fileStruct *fileLoad = (fileStruct *)data;
+	textStruct *fileLoad = (textStruct *)data;
 	int fileSize;
 	int character;
 	gboolean returnValue = TRUE;
@@ -231,7 +272,7 @@ static gboolean file_load_to_text_view_cb(GtkWidget *widget, gpointer data)
 static gboolean open_file_cb(GtkWidget *widget, gpointer data)
 {
 	GtkWidget *dialog;
-	fileStruct *openFile = (fileStruct *)data;
+	textStruct *openFile = (textStruct *)data;
 	gboolean returnValue = TRUE;
 
 	dialog = gtk_file_chooser_dialog_new("Open File",
@@ -275,7 +316,7 @@ static gboolean open_file_cb(GtkWidget *widget, gpointer data)
 //is indeed open, it will close it. If the closing was successful, it will return TRUE and set isOpen to
 //FALSE. If it fails, it will print a message to the output buffer and return FALSE, leaving isOpen as true.
 //Eventually, add truth table
-static gboolean fileClose(fileStruct *file)
+static gboolean fileClose(textStruct *file)
 {
 	gboolean returnValue = FALSE;
 
@@ -294,7 +335,7 @@ static gboolean fileClose(fileStruct *file)
 	return returnValue;
 }
 
-static gboolean fileOpen(fileStruct *file)
+static gboolean fileOpen(textStruct *file)
 {
 	gboolean returnValue = FALSE;
 
@@ -317,7 +358,7 @@ static gboolean fileOpen(fileStruct *file)
 	return returnValue;
 }
 
-static gboolean fileWrite(fileStruct *file)
+static gboolean fileWrite(textStruct *file)
 {
 	gboolean returnValue = FALSE;
 
