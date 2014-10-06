@@ -80,6 +80,9 @@ int main(int argc, char *argv[])
 	g_signal_connect(menu_item, "activate", G_CALLBACK(open_file_cb), (gpointer)(&openText));
 	g_signal_connect(menu_item, "activate", G_CALLBACK(file_load_to_text_view_cb), (gpointer)(&openText));
 
+	menu_item = gtk_builder_get_object(builder, "cut_menu");
+	g_signal_connect(menu_item, "activate", G_CALLBACK(cut_text), (gpointer)window);
+
 	toolbar_button = gtk_builder_get_object(builder, "open_button");
 	g_signal_connect(toolbar_button, "clicked", G_CALLBACK(open_file_cb), (gpointer)(&openText));
 	g_signal_connect(toolbar_button, "clicked", G_CALLBACK(file_load_to_text_view_cb), (gpointer)(&openText));
