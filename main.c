@@ -33,6 +33,7 @@ static gboolean new_file_cb(GtkWidget *widget, gpointer data);
 static gboolean copy_text(GtkWidget *widget, gpointer data);
 static gboolean cut_text(GtkWidget *widget, gpointer data);
 static gboolean paste_text(GtkWidget *widget, gpointer data);
+static gboolean delete_text(GtkWidget *widget, gpointer data);
 
 static void send_key(GtkWidget *window, guint keyval, guint state);
 
@@ -83,6 +84,15 @@ int main(int argc, char *argv[])
 	menu_item = gtk_builder_get_object(builder, "cut_menu");
 	g_signal_connect(menu_item, "activate", G_CALLBACK(cut_text), (gpointer)window);
 
+	menu_item = gtk_builder_get_object(builder, "copy_menu");
+	g_signal_connect(menu_item, "activate", G_CALLBACK(copy_text), (gpointer)window);
+
+	menu_item = gtk_builder_get_object(builder, "paste_menu");
+	g_signal_connect(menu_item, "activate", G_CALLBACK(paste_text), (gpointer)window);
+
+	menu_item = gtk_builder_get_object(builder, "delete_menu");
+	g_signal_connect(menu_item, "activate", G_CALLBACK(delete_text), (gpointer)window);
+
 	toolbar_button = gtk_builder_get_object(builder, "open_button");
 	g_signal_connect(toolbar_button, "clicked", G_CALLBACK(open_file_cb), (gpointer)(&openText));
 	g_signal_connect(toolbar_button, "clicked", G_CALLBACK(file_load_to_text_view_cb), (gpointer)(&openText));
@@ -109,6 +119,13 @@ int main(int argc, char *argv[])
 	fileClose(&openText);
 
 	return 0;
+}
+
+static gboolean delete_text(GtkWidget *widget, gpointer data)
+{
+	send_key(GTK_WIDGET(data), GDK_KEY_Delete, 0);
+
+	return TRUE;
 }
 
 static gboolean cut_text(GtkWidget *widget, gpointer data)
