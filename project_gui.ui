@@ -252,6 +252,20 @@
               </packing>
             </child>
             <child>
+              <object class="GtkToolButton" id="cut_button">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <property name="tooltip_text" translatable="yes">Cut</property>
+                <property name="label" translatable="yes">Cut</property>
+                <property name="use_underline">True</property>
+                <property name="stock_id">gtk-cut</property>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="homogeneous">True</property>
+              </packing>
+            </child>
+            <child>
               <object class="GtkToolButton" id="paste_button">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>

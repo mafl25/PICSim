@@ -31,6 +31,10 @@ static gboolean save_as_text_view_to_file(GtkWidget *widget, gpointer data);
 static gboolean new_file_cb(GtkWidget *widget, gpointer data);
 
 static gboolean copy_text(GtkWidget *widget, gpointer data);
+static gboolean cut_text(GtkWidget *widget, gpointer data);
+static gboolean paste_text(GtkWidget *widget, gpointer data);
+
+static void send_key(GtkWidget *window, guint keyval, guint state);
 
 int main(int argc, char *argv[])
 {
@@ -89,6 +93,12 @@ int main(int argc, char *argv[])
 	toolbar_button = gtk_builder_get_object(builder, "copy_button");
 	g_signal_connect(toolbar_button, "clicked", G_CALLBACK(copy_text), (gpointer)window);
 
+	toolbar_button = gtk_builder_get_object(builder, "cut_button");
+	g_signal_connect(toolbar_button, "clicked", G_CALLBACK(cut_text), (gpointer)window);
+
+	toolbar_button = gtk_builder_get_object(builder, "paste_button");
+	g_signal_connect(toolbar_button, "clicked", G_CALLBACK(paste_text), (gpointer)window);
+
 	g_object_unref(G_OBJECT(builder));
 	gtk_main();
 
@@ -98,33 +108,23 @@ int main(int argc, char *argv[])
 	return 0;
 }
 
+static gboolean cut_text(GtkWidget *widget, gpointer data)
+{
+	send_key(GTK_WIDGET(data), GDK_KEY_x, GDK_CONTROL_MASK);
+
+	return TRUE;
+}
+
+static gboolean paste_text(GtkWidget *widget, gpointer data)
+{
+	send_key(GTK_WIDGET(data), GDK_KEY_v, GDK_CONTROL_MASK);
+
+	return TRUE;
+}
+
 static gboolean copy_text(GtkWidget *widget, gpointer data)
 {
-	//textStruct *text = (textStruct *)data;
-//	gtk_text_buffer_copy_clipboard(text->programBuffer)
-//	Creo que saldrá mejor hacer lo anterior o.o
-	GtkWidget *window = (GtkWidget *)data;
-
-	guint keyVal = GDK_KEY_c;
-	GdkKeymapKey *pKeys;
-	gint numKeys = 0;
-
-	gdk_keymap_get_entries_for_keyval(gdk_keymap_get_default(), keyVal, &pKeys, &numKeys);
-
-	GdkEvent *pressA = gdk_event_new(GDK_KEY_PRESS) ;
-	//gdk_event_set_device(pressA, )
-	pressA->key.type = GDK_KEY_PRESS;
-	pressA->key.window = gtk_widget_get_window(window); 
-	pressA->key.send_event = TRUE;
-	pressA->key.time = GDK_CURRENT_TIME;
-	pressA->key.state = GDK_SHIFT_MASK;
-	pressA->key.keyval = keyVal;
-
-	pressA->key.hardware_keycode = pKeys[0].keycode;
-	pressA->key.group = pKeys[0].group;
-	gtk_main_do_event(pressA);
-
-	gdk_event_free(pressA);
+	send_key(GTK_WIDGET(data), GDK_KEY_c, GDK_CONTROL_MASK);
 
 	return TRUE;
 }
@@ -391,4 +391,35 @@ static void outputPrint(GtkTextBuffer *outputBuffer, char * message, gboolean ad
 		gtk_text_buffer_get_end_iter(outputBuffer, &end);
 		gtk_text_buffer_insert(outputBuffer, &end, "\n", -1);
 	}
+}
+
+static void send_key(GtkWidget *window, guint keyval, guint state)
+{
+	GdkWindow *gdk_window = g_object_ref(gtk_widget_get_window(window));
+	GdkDisplay *display = gdk_display_get_default();
+	GdkDeviceManager *device_manager = gdk_display_get_device_manager(display);
+	GdkDevice *device = gdk_device_manager_get_client_pointer(device_manager);
+
+	GdkKeymapKey *pKeys;
+	gint numKeys = 0;
+
+	gdk_keymap_get_entries_for_keyval(gdk_keymap_get_default(), keyval, &pKeys, &numKeys);
+
+	GdkEvent *pressA = gdk_event_new(GDK_KEY_PRESS) ;
+	gdk_event_set_device(pressA, device);
+
+	pressA->key.type = GDK_KEY_PRESS;
+	pressA->key.window = gdk_window; 
+	pressA->key.send_event = TRUE;
+	pressA->key.time = GDK_CURRENT_TIME;
+	pressA->key.state = state;
+	pressA->key.keyval = keyval;
+	pressA->key.hardware_keycode = pKeys[0].keycode;
+	pressA->key.group = pKeys[0].group;
+	pressA->key.is_modifier = (state) ? 1 : 0;
+	
+	gdk_display_put_event(display, pressA);
+
+	gdk_event_free(pressA);
+	g_free(pKeys);
 }
