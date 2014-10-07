@@ -4,20 +4,12 @@
 
 typedef struct
 {
-	GObject *textProgram;
-	GObject *programBuffer;
-	GObject *textOutput;
-	GObject *outputBuffer;
-	GObject *label;
 	FILE *file;
 	char *filename;
-	GtkClipboard *clipboard;
-}textStruct;
+}MFile;
 
-gboolean fileClose(textStruct *file);
-gboolean fileOpen(textStruct *file);
-gboolean fileWrite(textStruct *file);
-
-void outputPrint(GtkTextBuffer *outputBuffer, char * message, gboolean addNewline);
+gboolean fileClose(MFile *file, GtkTextBuffer *outputBuffer);
+gboolean fileOpen(MFile *file, GtkTextBuffer *outputBuffer);
+gboolean fileWrite(MFile *file, GtkTextBuffer *outputBuffer);
 
 #endif

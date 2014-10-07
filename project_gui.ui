@@ -470,7 +470,7 @@
                       </object>
                     </child>
                     <child>
-                      <object class="GtkImageMenuItem" id="paste_manu">
+                      <object class="GtkImageMenuItem" id="paste_menu">
                         <property name="label">gtk-paste</property>
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
