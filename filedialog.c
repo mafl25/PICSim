@@ -3,6 +3,8 @@
 #include <gtk/gtk.h>
 #include <stdlib.h>
 
+//Tal vez tenga que hacer una funcion aparte para modificar los labels
+
 void textStructInit(textStruct *text, GtkBuilder *builder, gchar *text_program, gchar *text_output,
 		gchar *program_buffer, gchar *output_buffer, gchar *label_text)
 {
@@ -19,6 +21,10 @@ void textStructInit(textStruct *text, GtkBuilder *builder, gchar *text_program, 
 	g_object_ref(text->programBuffer);
 	g_object_ref(text->outputBuffer);
 	g_object_ref(text->label);
+
+	gtk_label_set_text(GTK_LABEL(text->label), UNSAVED_FILE);
+
+	text->isSaved = TRUE;
 }
 
 void textStructDestroy(textStruct *text)
@@ -29,6 +35,14 @@ void textStructDestroy(textStruct *text)
 	g_object_unref(text->programBuffer);
 	g_object_unref(text->outputBuffer);
 	g_object_unref(text->label);
+}
+
+gboolean set_saved_cb(GtkWidget *widget, gpointer data)
+{
+	textStruct *label = (textStruct *)data;
+	label->isSaved = TRUE;
+
+	return TRUE;
 }
 
 gboolean new_file_cb(GtkWidget *widget, gpointer data)
@@ -49,8 +63,10 @@ gboolean new_file_cb(GtkWidget *widget, gpointer data)
 		GtkTextIter end;
 		gtk_text_buffer_get_start_iter(GTK_TEXT_BUFFER(newFile->programBuffer), &start);
 		gtk_text_buffer_get_end_iter(GTK_TEXT_BUFFER(newFile->programBuffer), &end);
+		g_signal_handler_block((gpointer)newFile->programBuffer, newFile->programChangedHandlerId);
 		gtk_text_buffer_delete(GTK_TEXT_BUFFER(newFile->programBuffer), &start, &end);
-		gtk_label_set_text(GTK_LABEL(newFile->label), "Unsaved file");
+		g_signal_handler_unblock((gpointer)newFile->programBuffer, newFile->programChangedHandlerId);
+		gtk_label_set_text(GTK_LABEL(newFile->label), UNSAVED_FILE);
 	}
 
 	return returnValue;
@@ -80,6 +96,9 @@ gboolean save_text_view_to_file_cb(GtkWidget *widget, gpointer data)
 				outputPrint(GTK_TEXT_BUFFER(fileSave->outputBuffer), "Document: \"", FALSE);
 				outputPrint(GTK_TEXT_BUFFER(fileSave->outputBuffer), fileSave->file.filename, FALSE);
 				outputPrint(GTK_TEXT_BUFFER(fileSave->outputBuffer), "\" saved.", TRUE);
+				gchar *name = g_filename_display_basename(fileSave->file.filename);
+				gtk_label_set_text(GTK_LABEL(fileSave->label), name);
+				g_free(name);
 				returnValue = TRUE;
 			}
 			fileClose(&fileSave->file, GTK_TEXT_BUFFER(fileSave->outputBuffer));
@@ -113,11 +132,14 @@ gboolean file_load_to_text_view_cb(GtkWidget *widget, gpointer data)
 		for (j = 0; j < fileSize; ++j)
 			text[j] = (gchar)getc(fileLoad->file.file);	
 
+		g_signal_handler_block((gpointer)fileLoad->programBuffer, fileLoad->programChangedHandlerId);
 		gtk_text_buffer_set_text(GTK_TEXT_BUFFER(fileLoad->programBuffer), text, -1);
+		g_signal_handler_unblock((gpointer)fileLoad->programBuffer, fileLoad->programChangedHandlerId);
+
 		rewind(fileLoad->file.file);
 		free(text);
 
-		fileClose(&fileLoad->file, GTK_TEXT_BUFFER(fileLoad->programBuffer));
+		fileClose(&fileLoad->file, GTK_TEXT_BUFFER(fileLoad->outputBuffer));
 	}
 
 	return returnValue;
@@ -189,7 +211,7 @@ gboolean save_as_text_view_to_file_cb(GtkWidget *widget, gpointer data)
 	if(fileSave->file.filename != NULL){
 		gtk_file_chooser_set_filename(chooser, fileSave->file.filename);
 	}else{
-		gtk_file_chooser_set_current_name(chooser, "Untitled Document");
+		gtk_file_chooser_set_current_name(chooser, UNSAVED_FILE);
 	}
 
 
