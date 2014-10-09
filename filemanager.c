@@ -9,18 +9,21 @@
 //is indeed open, it will close it. If the closing was successful, it will return TRUE and set isOpen to
 //FALSE. If it fails, it will print a message to the output buffer and return FALSE, leaving isOpen as true.
 //Eventually, add truth table
-gboolean fileClose(MFile *file, GtkTextBuffer *outputBuffer)
+gboolean fileClose(FILE **file, const gchar *filename, GtkTextBuffer *error_output)
 {
 	gboolean returnValue = FALSE;
 
-	if(file->file != NULL){
-		int output = fclose(file->file);
+	if(*file != NULL){
+		int output = fclose(*file);
 		if(output == EOF){
-			outputPrint(outputBuffer, "Error: File \"", FALSE);
-			outputPrint(outputBuffer, file->filename, FALSE);
-			outputPrint(outputBuffer, "\" could not be closed.", TRUE);
+			if(error_output != NULL){
+				outputPrint(error_output, "Error: File \"", FALSE);
+				if(filename != NULL)
+					outputPrint(error_output, filename, FALSE);
+				outputPrint(error_output, "\" could not be closed.", TRUE);
+			}
 		}else{
-			file->file = NULL;
+			*file = NULL;
 			returnValue = TRUE;
 		}
 	}
@@ -28,47 +31,53 @@ gboolean fileClose(MFile *file, GtkTextBuffer *outputBuffer)
 	return returnValue;
 }
 
-gboolean fileOpen(MFile *file, GtkTextBuffer *outputBuffer)
+gboolean fileOpen(FILE **file, const gchar *filename, GtkTextBuffer *error_output)
 {
 	gboolean returnValue = FALSE;
 
-	if(file->filename != NULL){
-		file->file = fopen(file->filename, "r");
-		if(file->file == NULL){
-			char *error = strerror(errno);
-			outputPrint(outputBuffer, "Error opening file \"", FALSE);
-			outputPrint(outputBuffer, file->filename, FALSE);
-			outputPrint(outputBuffer, "\": ", FALSE);
-			outputPrint(outputBuffer, error, TRUE);
+	if(filename != NULL){
+		*file = fopen(filename, "r");
+		if(*file == NULL){
+			if(error_output != NULL){
+				char *error = strerror(errno);
+				outputPrint(error_output, "Error opening file \"", FALSE);
+				outputPrint(error_output, filename, FALSE);
+				outputPrint(error_output, "\": ", FALSE);
+				outputPrint(error_output, error, TRUE);
+			}
 		}else{
 			returnValue = TRUE;
 		}
 	}else{
-		file->file = NULL;
-		outputPrint(outputBuffer, "Error opening file: No filename provided.", TRUE);
+		*file = NULL;
+		if(error_output != NULL)
+			outputPrint(error_output, "Error opening file: No filename provided.", TRUE);
 	}
 
 	return returnValue;
 }
 
-gboolean fileWrite(MFile *file, GtkTextBuffer *outputBuffer)
+gboolean fileWrite(FILE **file, const gchar *filename, GtkTextBuffer *error_output)
 {
 	gboolean returnValue = FALSE;
 
-	if(file->filename != NULL){
-		file->file = fopen(file->filename, "w");
-		if(file->file == NULL){
-			char *error = strerror(errno);
-			outputPrint(outputBuffer, "Error writting file \"", FALSE);
-			outputPrint(outputBuffer, file->filename, FALSE);
-			outputPrint(outputBuffer, "\": ", FALSE);
-			outputPrint(outputBuffer, error, TRUE);
+	if(filename != NULL){
+		*file = fopen(filename, "w");
+		if(*file == NULL){
+			if(error_output != NULL){
+				char *error = strerror(errno);
+				outputPrint(error_output, "Error writting file \"", FALSE);
+				outputPrint(error_output, filename, FALSE);
+				outputPrint(error_output, "\": ", FALSE);
+				outputPrint(error_output, error, TRUE);
+			}
 		}else{
 			returnValue = TRUE;
 		}
 	}else{
-		file->file = NULL;
-		outputPrint(outputBuffer, "Error writting file: No filename provided.", TRUE);
+		*file = NULL;
+		if(error_output != NULL)
+			outputPrint(error_output, "Error writting file: No filename provided.", TRUE);
 	}
 
 	return returnValue;

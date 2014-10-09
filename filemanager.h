@@ -1,15 +1,10 @@
 #ifndef FILEMANAGER_H
 #define FILEMANAGER_H
 #include <gtk/gtk.h>
+#include <stdio.h>
 
-typedef struct
-{
-	FILE *file;
-	char *filename;
-}MFile;
-
-gboolean fileClose(MFile *file, GtkTextBuffer *outputBuffer);
-gboolean fileOpen(MFile *file, GtkTextBuffer *outputBuffer);
-gboolean fileWrite(MFile *file, GtkTextBuffer *outputBuffer);
+gboolean fileClose(FILE **file, const gchar *filename, GtkTextBuffer *error_buffer);
+gboolean fileOpen(FILE **file,const gchar *filename, GtkTextBuffer *error_buffer);
+gboolean fileWrite(FILE **file, const gchar *filename, GtkTextBuffer *error_buffer);
 
 #endif

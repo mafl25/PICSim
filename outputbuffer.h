@@ -3,6 +3,6 @@
 
 #include <gtk/gtk.h>
 
-void outputPrint(GtkTextBuffer *outputBuffer, gchar * message, gboolean addNewline);
+void outputPrint(GtkTextBuffer *outputBuffer, const gchar *message, gboolean addNewline);
 
 #endif

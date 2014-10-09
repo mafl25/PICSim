@@ -1,8 +1,10 @@
 #include "filemanager.h"
 #include "filedialog.h"
 #include "outputbuffer.h"
+#include "callbacks.h"
 #include <gtk/gtk.h>
 #include <gdk/gdk.h>
+//#include <gtksourceview-3.0/gtksourceview/gtksource.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -13,6 +15,10 @@ static gboolean copy_text(GtkWidget *widget, gpointer data);
 static gboolean cut_text(GtkWidget *widget, gpointer data);
 static gboolean paste_text(GtkWidget *widget, gpointer data);
 static gboolean delete_text(GtkWidget *widget, gpointer data);
+
+void textStructInit(textStruct *text, GtkBuilder *builder, gchar *text_program, gchar *text_output,
+		gchar *program_buffer, gchar *output_buffer, gchar *label_text);
+void textStructDestroy(textStruct *text);
 
 static gboolean program_changed_cd(GtkWidget *widget, gpointer data);
 
@@ -96,15 +102,48 @@ int main(int argc, char *argv[])
 	openText.programChangedHandlerId = g_signal_connect(openText.programBuffer, "changed", 
 			G_CALLBACK(program_changed_cd), (gpointer)&openText);
 
-
 	g_object_unref(G_OBJECT(builder));
 	gtk_main();
 
-	fileClose(&openText.file, GTK_TEXT_BUFFER(openText.outputBuffer));
+	fileClose(&openText.file, openText.filename, GTK_TEXT_BUFFER(openText.outputBuffer));
 	textStructDestroy(&openText);
 
 	return 0;
 }
+
+
+void textStructInit(textStruct *text, GtkBuilder *builder, gchar *text_program, gchar *text_output,
+		gchar *program_buffer, gchar *output_buffer, gchar *label_text)
+{
+	text->programTextView = gtk_builder_get_object(builder, text_program);
+	text->programBuffer = gtk_builder_get_object(builder, program_buffer);
+	text->outputTextView = gtk_builder_get_object(builder, text_output);
+	text->outputBuffer = gtk_builder_get_object(builder, output_buffer);
+	text->label = gtk_builder_get_object(builder, label_text);
+	text->file = NULL;
+	text->filename = NULL;
+
+	g_object_ref(text->programTextView);
+	g_object_ref(text->outputTextView);
+	g_object_ref(text->programBuffer);
+	g_object_ref(text->outputBuffer);
+	g_object_ref(text->label);
+
+	gtk_label_set_text(GTK_LABEL(text->label), UNSAVED_FILE);
+
+	text->isSaved = TRUE;
+}
+
+void textStructDestroy(textStruct *text)
+{
+	g_free(text->filename);
+	g_object_unref(text->programTextView);
+	g_object_unref(text->outputTextView);
+	g_object_unref(text->programBuffer);
+	g_object_unref(text->outputBuffer);
+	g_object_unref(text->label);
+}
+
 //need to rethink this
 static gboolean program_changed_cd(GtkWidget *widget, gpointer data)
 {
@@ -113,10 +152,10 @@ static gboolean program_changed_cd(GtkWidget *widget, gpointer data)
 
 	if(label->isSaved){
 		label->isSaved = FALSE;
-		if(label->file.filename == NULL)
+		if(label->filename == NULL)
 			gtk_label_set_text(GTK_LABEL(label->label), UNSAVED_FILE_MOD);
 		else{
-			name = g_filename_display_basename(label->file.filename);
+			name = g_filename_display_basename(label->filename);
 			int length = strlen(name);
 			length = length + 2;
 			gchar *newName = calloc(1, length);
