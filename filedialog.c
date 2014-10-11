@@ -3,7 +3,30 @@
 #include "outputbuffer.h"
 #include <gtk/gtk.h>
 #include <stdlib.h>
+#include <string.h>
 
+static GtkFileFilter *file_filter;
+
+void set_file_filter(gchar **file_patterns)
+{
+	static gboolean wasCalled = FALSE;
+	
+	if(!wasCalled){
+		wasCalled = TRUE;
+		file_filter = gtk_file_filter_new();
+		g_object_ref(G_OBJECT(file_filter));
+		int j;
+		for (j = 0; strcmp(file_patterns[j], "NULL") != 0; ++j)
+		{
+			gtk_file_filter_add_pattern(file_filter, file_patterns[j]);
+		}
+	}
+}
+
+void file_filter_unref(void)
+{
+	g_object_unref(file_filter);
+}
 
 gboolean new_file(FILE **file, gchar **filename, GtkTextBuffer *text_buffer, GtkTextBuffer *output_buffer)
 {
@@ -38,7 +61,6 @@ gboolean save_text_view_to_file(FILE **file, gchar **filename, GtkTextBuffer *te
 	char *text;
 
 	if(*filename != NULL){
-		g_print("Hola MAria\n");
 		gtk_text_buffer_get_start_iter(text_buffer, &start);
 		gtk_text_buffer_get_end_iter(text_buffer, &end);
 
@@ -52,7 +74,6 @@ gboolean save_text_view_to_file(FILE **file, gchar **filename, GtkTextBuffer *te
 					outputPrint(output_buffer, "\" could not be saved.", TRUE);
 				}
 			}else{
-				//Maybe need to free text
 				if(output_buffer != NULL){
 					outputPrint(output_buffer, "Document: \"", FALSE);
 					outputPrint(output_buffer, *filename, FALSE);
@@ -71,7 +92,7 @@ gboolean save_text_view_to_file(FILE **file, gchar **filename, GtkTextBuffer *te
 }
 
 
-gboolean open_file(FILE **file, gchar **filename, /*gchar *termination,*/ GtkTextBuffer *output_buffer)
+gboolean open_file(FILE **file, gchar **filename, GtkTextBuffer *output_buffer)
 {
 	GtkWidget *dialog;
 	gboolean returnValue = TRUE;
@@ -86,9 +107,7 @@ gboolean open_file(FILE **file, gchar **filename, /*gchar *termination,*/ GtkTex
 			NULL);
 
 	GtkFileChooser *chooser = GTK_FILE_CHOOSER(dialog);
-	GtkFileFilter *filter = gtk_file_filter_new();
-	gtk_file_filter_add_pattern(filter, "*.asm");
-	gtk_file_chooser_set_filter(chooser, filter);
+	gtk_file_chooser_set_filter(chooser, file_filter);
 	gint res = gtk_dialog_run(GTK_DIALOG(dialog));
 
 	if(res == GTK_RESPONSE_ACCEPT){
@@ -126,7 +145,7 @@ gboolean save_as_text_view_to_file(FILE **file, gchar **filename, GtkTextBuffer 
 	gtk_file_chooser_set_do_overwrite_confirmation(chooser, TRUE);
 //	GtkFileFilter *filter = gtk_file_filter_new();
 //	gtk_file_filter_add_pattern(filter, "*.asm");
-//	gtk_file_chooser_set_filter(chooser, filter);
+	gtk_file_chooser_set_filter(chooser, file_filter);
 
 	if(*filename != NULL){
 		gtk_file_chooser_set_filename(chooser, *filename);
