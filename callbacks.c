@@ -1,6 +1,7 @@
 #include "callbacks.h"
 #include "filedialog.h"
 #include <gtk/gtk.h>
+#include <gtksourceview/gtksource.h>
 #include <stdlib.h>
 #include <assert.h>
 #include <string.h>
@@ -48,14 +49,18 @@ static void send_key(GtkWidget *window, guint keyval, guint state)
 	g_free(pKeys);
 }
 
-void textStructInit(textStruct *text, GtkBuilder *builder, gchar *text_program, gchar *text_output,
-		gchar *program_buffer, gchar *output_buffer, gchar *label_text)
+void textStructInit(textStruct *text, GtkBuilder *builder)
 {
-	text->programTextView = gtk_builder_get_object(builder, text_program);
-	text->programBuffer = gtk_builder_get_object(builder, program_buffer);
-	text->outputTextView = gtk_builder_get_object(builder, text_output);
-	text->outputBuffer = gtk_builder_get_object(builder, output_buffer);
-	text->label = gtk_builder_get_object(builder, label_text);
+	text->programBuffer = G_OBJECT(gtk_source_buffer_new(NULL));
+	text->programTextView = G_OBJECT(gtk_source_view_new_with_buffer(
+				GTK_SOURCE_BUFFER(text->programBuffer)));
+	GObject *scrolled = gtk_builder_get_object(builder, "text_scrolled");
+	gtk_container_add(GTK_CONTAINER(scrolled), GTK_WIDGET(text->programTextView));
+	gtk_widget_show(GTK_WIDGET(text->programTextView));
+
+	text->outputTextView = gtk_builder_get_object(builder, "text_output");
+	text->outputBuffer = gtk_builder_get_object(builder, "output_buffer");
+	text->label = gtk_builder_get_object(builder, "text_name");
 	text->file = NULL;
 	text->filename = NULL;
 
@@ -234,6 +239,73 @@ gboolean paste_text(GtkWidget *widget, gpointer data)
 gboolean copy_text(GtkWidget *widget, gpointer data)
 {
 	send_key(GTK_WIDGET(data), GDK_KEY_c, GDK_CONTROL_MASK);
+
+	return TRUE;
+}
+
+gboolean line_number_toggle_cb(GtkWidget *widget, gpointer data)
+{
+	textStruct *text = (textStruct *)data;
+	
+	gtk_source_view_set_show_line_numbers(GTK_SOURCE_VIEW(text->programTextView), 
+			gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(widget)));
+
+	return TRUE;
+}
+
+gboolean toggle_sensitive_cb(GtkWidget *widget, gpointer data)
+{
+	gtk_widget_set_sensitive(GTK_WIDGET(data), gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(widget)));
+
+	return TRUE;
+}
+
+gboolean right_margin_toggle_cb(GtkWidget *widget, gpointer data)
+{
+	textStruct *text = (textStruct *)data;
+
+	gtk_source_view_set_show_right_margin(GTK_SOURCE_VIEW(text->programTextView), 
+			gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(widget)));
+
+	return TRUE;
+}
+
+gboolean right_margin_width_set_cb(GtkWidget *widget, gpointer data)
+{
+	textStruct *text = (textStruct *)data;
+
+	gtk_source_view_set_right_margin_position(GTK_SOURCE_VIEW(text->programTextView), 
+			gtk_spin_button_get_value(GTK_SPIN_BUTTON(widget)));
+
+	return TRUE;
+}
+
+gboolean wrap_text_cb(GtkWidget *widget, gpointer data)
+{
+	textStruct *text = (textStruct *)data;
+
+	gtk_text_view_set_wrap_mode(GTK_TEXT_VIEW(text->programTextView),
+			(gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(widget)))? (GTK_WRAP_WORD):(GTK_WRAP_NONE));
+
+	return TRUE;
+}
+
+gboolean wrap_mode_mode_change_cb(GtkWidget *widget, gpointer data)
+{
+	textStruct *text = (textStruct *)data;
+
+	gtk_text_view_set_wrap_mode(GTK_TEXT_VIEW(text->programTextView),
+			(gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(widget)))? (GTK_WRAP_CHAR):(GTK_WRAP_WORD));
+
+	return TRUE;
+}
+
+gboolean highlight_line_cb(GtkWidget *widget, gpointer data)
+{
+	textStruct *text = (textStruct *)data;
+
+	gtk_source_view_set_highlight_current_line(GTK_SOURCE_VIEW(text->programTextView), 
+			gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(widget)));
 
 	return TRUE;
 }

@@ -17,8 +17,7 @@ typedef struct
 	gulong programChangedHandlerId;
 }textStruct;
 
-void textStructInit(textStruct *text, GtkBuilder *builder, gchar *text_program, gchar *text_output,
-		gchar *program_buffer, gchar *output_buffer, gchar *label_text);
+void textStructInit(textStruct *text, GtkBuilder *builder);
 void textStructDestroy(textStruct *text);
 
 gboolean set_saved_cb(GtkWidget *widget, gpointer data);
@@ -34,6 +33,20 @@ gboolean copy_text(GtkWidget *widget, gpointer data);
 gboolean cut_text(GtkWidget *widget, gpointer data);
 gboolean paste_text(GtkWidget *widget, gpointer data);
 gboolean delete_text(GtkWidget *widget, gpointer data);
+
+gboolean toggle_sensitive_cb(GtkWidget *widget, gpointer data);
+
+gboolean line_number_toggle_cb(GtkWidget *widget, gpointer data);
+gboolean right_margin_toggle_cb(GtkWidget *widget, gpointer data);
+gboolean right_margin_width_set_cb(GtkWidget *widget, gpointer data);
+
+gboolean wrap_text_cb(GtkWidget *widget, gpointer data);
+gboolean wrap_mode_mode_change_cb(GtkWidget *widget, gpointer data);
+gboolean highlight_line_cb(GtkWidget *widget, gpointer data);
+
+
+
+
 
 #endif
 
