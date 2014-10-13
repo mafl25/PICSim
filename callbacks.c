@@ -98,7 +98,10 @@ gboolean set_saved_cb(GtkWidget *widget, gpointer data)
 	return TRUE;
 }
 
-//need to rethink this
+//Tengo que ponerle que si no esta salvado, que no lo cambie
+//Creo que aqui hay un bug, revisar que una vez caqmbiado, no este llamando constantemente
+//a esta funcion, posiblemente lograr que se reactive solo cuando haya salvado el documento
+//Bueno, ya recorde el set Saved, pero revisar luego
 gboolean program_changed_cd(GtkWidget *widget, gpointer data)
 {
 	textStruct *label = (textStruct *)data;
@@ -305,6 +308,46 @@ gboolean highlight_line_cb(GtkWidget *widget, gpointer data)
 	textStruct *text = (textStruct *)data;
 
 	gtk_source_view_set_highlight_current_line(GTK_SOURCE_VIEW(text->programTextView), 
+			gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(widget)));
+
+	return TRUE;
+}
+
+gboolean highlight_bracket_cb(GtkWidget *widget, gpointer data)
+{
+	textStruct *text = (textStruct *)data;
+
+	gtk_source_buffer_set_highlight_matching_brackets(GTK_SOURCE_BUFFER(text->programBuffer), 
+			gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(widget)));
+
+	return TRUE;
+}
+
+gboolean tab_width_change_cb(GtkWidget *widget, gpointer data)
+{
+	textStruct *text = (textStruct *)data;
+
+	gtk_source_view_set_tab_width(GTK_SOURCE_VIEW(text->programTextView), 
+			gtk_spin_button_get_value(GTK_SPIN_BUTTON(widget)));
+
+	return TRUE;
+}
+
+gboolean space_tab_change_cb(GtkWidget *widget, gpointer data)
+{
+	textStruct *text = (textStruct *)data;
+
+	gtk_source_view_set_insert_spaces_instead_of_tabs(GTK_SOURCE_VIEW(text->programTextView), 
+			gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(widget)));
+
+	return TRUE;
+}
+
+gboolean auto_indent_change_cb(GtkWidget *widget, gpointer data)
+{
+	textStruct *text = (textStruct *)data;
+
+	gtk_source_view_set_auto_indent(GTK_SOURCE_VIEW(text->programTextView), 
 			gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(widget)));
 
 	return TRUE;
