@@ -144,8 +144,6 @@ gboolean save_as_text_view_to_file(FILE **file, gchar **filename, GtkTextBuffer 
 
 	GtkFileChooser *chooser = GTK_FILE_CHOOSER(dialog);
 	gtk_file_chooser_set_do_overwrite_confirmation(chooser, TRUE);
-//	GtkFileFilter *filter = gtk_file_filter_new();
-//	gtk_file_filter_add_pattern(filter, "*.asm");
 	gtk_file_chooser_set_filter(chooser, file_filter);
 
 	if(*filename != NULL){

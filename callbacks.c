@@ -1,11 +1,14 @@
 #include "callbacks.h"
 #include "filedialog.h"
 #include "outputbuffer.h"
+#include "settings.h"
 #include <gtk/gtk.h>
 #include <gtksourceview/gtksource.h>
 #include <stdlib.h>
 #include <assert.h>
 #include <string.h>
+
+static GtkWrapMode textWrapMode;
 
 static void change_label(GtkLabel *label, gchar *filename)
 {
@@ -250,9 +253,9 @@ gboolean copy_text(GtkWidget *widget, gpointer data)
 gboolean line_number_toggle_cb(GtkWidget *widget, gpointer data)
 {
 	textStruct *text = (textStruct *)data;
+	gboolean buttonState = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(widget));
 	
-	gtk_source_view_set_show_line_numbers(GTK_SOURCE_VIEW(text->programTextView), 
-			gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(widget)));
+	gtk_source_view_set_show_line_numbers(GTK_SOURCE_VIEW(text->programTextView), buttonState);
 
 	return TRUE;
 }
@@ -279,23 +282,21 @@ gboolean right_margin_width_set_cb(GtkWidget *widget, gpointer data)
 	textStruct *text = (textStruct *)data;
 
 	gtk_source_view_set_right_margin_position(GTK_SOURCE_VIEW(text->programTextView), 
-			gtk_spin_button_get_value(GTK_SPIN_BUTTON(widget)));
+			(guint)gtk_spin_button_get_value(GTK_SPIN_BUTTON(widget)));
 
 	return TRUE;
 }
 
-//I think I have to find a way to detect which wraping mode id being used
-//Use static variable
+//The setting function for the "text_wrap" widget must be called AFTER the setting
+//function for the "split_word" widget
 gboolean wrap_text_cb(GtkWidget *widget, gpointer data)
 {
 	textStruct *text = (textStruct *)data;
 
-	GtkWrapMode mode = gtk_text_view_get_wrap_mode(GTK_TEXT_VIEW(text->programTextView));
+	assert(textWrapMode != 0);
 
 	gtk_text_view_set_wrap_mode(GTK_TEXT_VIEW(text->programTextView),
-			(gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(widget)))? (GTK_WRAP_WORD):(GTK_WRAP_NONE));
-
-	output_print("W CB", TRUE);
+			(gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(widget)))? (textWrapMode):(GTK_WRAP_NONE));
 
 	return TRUE;
 }
@@ -304,8 +305,9 @@ gboolean wrap_mode_mode_change_cb(GtkWidget *widget, gpointer data)
 {
 	textStruct *text = (textStruct *)data;
 
-	gtk_text_view_set_wrap_mode(GTK_TEXT_VIEW(text->programTextView),
-			(gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(widget)))? (GTK_WRAP_CHAR):(GTK_WRAP_WORD));
+	textWrapMode = (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(widget)))? (GTK_WRAP_CHAR):(GTK_WRAP_WORD);
+
+	gtk_text_view_set_wrap_mode(GTK_TEXT_VIEW(text->programTextView), textWrapMode);
 
 	return TRUE;
 }
@@ -335,7 +337,7 @@ gboolean tab_width_change_cb(GtkWidget *widget, gpointer data)
 	textStruct *text = (textStruct *)data;
 
 	gtk_source_view_set_tab_width(GTK_SOURCE_VIEW(text->programTextView), 
-			gtk_spin_button_get_value(GTK_SPIN_BUTTON(widget)));
+			(guint)gtk_spin_button_get_value(GTK_SPIN_BUTTON(widget)));
 
 	return TRUE;
 }

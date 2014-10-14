@@ -475,7 +475,7 @@
                     <property name="sensitive">False</property>
                     <property name="can_focus">True</property>
                     <property name="shadow_type">etched-out</property>
-                    <property name="input_purpose">url</property>
+                    <property name="input_purpose">number</property>
                     <property name="adjustment">right_margin_adj</property>
                     <property name="numeric">True</property>
                     <property name="value">80</property>
@@ -721,6 +721,39 @@
                     <property name="width">1</property>
                     <property name="height">1</property>
                   </packing>
+                </child>
+                <child>
+                  <object class="GtkButton" id="save_settings">
+                    <property name="label" translatable="yes">Save Settings</property>
+                    <property name="name">save_settings</property>
+                    <property name="visible">True</property>
+                    <property name="can_focus">True</property>
+                    <property name="receives_default">True</property>
+                  </object>
+                  <packing>
+                    <property name="left_attach">7</property>
+                    <property name="top_attach">1</property>
+                    <property name="width">1</property>
+                    <property name="height">1</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkButton" id="default_settings">
+                    <property name="label" translatable="yes">Default Settings</property>
+                    <property name="name">default_settings</property>
+                    <property name="visible">True</property>
+                    <property name="can_focus">True</property>
+                    <property name="receives_default">True</property>
+                  </object>
+                  <packing>
+                    <property name="left_attach">7</property>
+                    <property name="top_attach">2</property>
+                    <property name="width">1</property>
+                    <property name="height">1</property>
+                  </packing>
+                </child>
+                <child>
+                  <placeholder/>
                 </child>
                 <child>
                   <placeholder/>

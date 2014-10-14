@@ -84,40 +84,9 @@ int main(int argc, char *argv[])
 	toolbar_button = gtk_builder_get_object(builder, "paste_button");
 	g_signal_connect(toolbar_button, "clicked", G_CALLBACK(paste_text), (gpointer)window);
 
-	//toolbar_button = gtk_builder_get_object(builder, "line_number_check");
-	//g_signal_connect(toolbar_button, "toggled", G_CALLBACK(line_number_toggle_cb), (gpointer)&openText);
 	build_settings(builder, &openText);
 	set_settings();
-/*
-	toolbar_button = gtk_builder_get_object(builder, "right_margin");
-	toolbar_secondary = gtk_builder_get_object(builder, "right_margin_width");
-	g_signal_connect(toolbar_button, "toggled", G_CALLBACK(right_margin_toggle_cb), (gpointer)&openText);
-	g_signal_connect(toolbar_button, "toggled", G_CALLBACK(toggle_sensitive_cb), (gpointer)toolbar_secondary);
 
-	g_signal_connect(toolbar_secondary, "value-changed", G_CALLBACK(right_margin_width_set_cb), (gpointer)&openText);
-
-	toolbar_button = gtk_builder_get_object(builder, "text_wrap");
-	toolbar_secondary = gtk_builder_get_object(builder, "split_word");
-	g_signal_connect(toolbar_button, "toggled", G_CALLBACK(wrap_text_cb), (gpointer)&openText);
-	g_signal_connect(toolbar_button, "toggled", G_CALLBACK(toggle_sensitive_cb), (gpointer)toolbar_secondary);
-
-	g_signal_connect(toolbar_secondary, "toggled", G_CALLBACK(wrap_mode_mode_change_cb), (gpointer)&openText);
-
-	toolbar_button = gtk_builder_get_object(builder, "highlight_line");
-	g_signal_connect(toolbar_button, "toggled", G_CALLBACK(highlight_line_cb), (gpointer)&openText);
-
-	toolbar_button = gtk_builder_get_object(builder, "highlight_bracket");
-	g_signal_connect(toolbar_button, "toggled", G_CALLBACK(highlight_bracket_cb), (gpointer)&openText);
-
-	toolbar_button = gtk_builder_get_object(builder, "indent_size");
-	g_signal_connect(toolbar_button, "value-changed", G_CALLBACK(tab_width_change_cb), (gpointer)&openText);
-
-	toolbar_button = gtk_builder_get_object(builder, "space_tabs");
-	g_signal_connect(toolbar_button, "toggled", G_CALLBACK(space_tab_change_cb), (gpointer)&openText);
-
-	toolbar_button = gtk_builder_get_object(builder, "auto_indent");
-	g_signal_connect(toolbar_button, "toggled", G_CALLBACK(auto_indent_change_cb), (gpointer)&openText);
-*/
 	openText.programChangedHandlerId = g_signal_connect(openText.programBuffer, "changed", 
 			G_CALLBACK(program_changed_cd), (gpointer)&openText);
 
