@@ -1,7 +1,7 @@
 #include "settings.h"
 #include "filemanager.h"
-#include "outputbuffer.h"
 #include "callbacks.h"
+#include "outputbuffer.h"
 #include <gtk/gtk.h>
 #include <gdk/gdk.h>
 #include <gtksourceview/gtksource.h>
@@ -16,7 +16,6 @@ int main(int argc, char *argv[])
 	GObject *window;
 	GObject *menu_item;
 	GObject *toolbar_button;
-	GObject *toolbar_secondary;
 
 	gtk_init(&argc, &argv);
 
@@ -29,6 +28,7 @@ int main(int argc, char *argv[])
 
 	textStruct openText;
 	textStructInit(&openText, builder);
+	set_output_buffer(GTK_TEXT_BUFFER(openText.outputBuffer));
 
 	menu_item = gtk_builder_get_object(builder, "quit_file");
 	g_signal_connect(menu_item, "activate", G_CALLBACK(gtk_main_quit), NULL);
@@ -95,7 +95,7 @@ int main(int argc, char *argv[])
 	g_signal_connect(toolbar_button, "toggled", G_CALLBACK(toggle_sensitive_cb), (gpointer)toolbar_secondary);
 
 	g_signal_connect(toolbar_secondary, "value-changed", G_CALLBACK(right_margin_width_set_cb), (gpointer)&openText);
-*/
+
 	toolbar_button = gtk_builder_get_object(builder, "text_wrap");
 	toolbar_secondary = gtk_builder_get_object(builder, "split_word");
 	g_signal_connect(toolbar_button, "toggled", G_CALLBACK(wrap_text_cb), (gpointer)&openText);
@@ -117,14 +117,14 @@ int main(int argc, char *argv[])
 
 	toolbar_button = gtk_builder_get_object(builder, "auto_indent");
 	g_signal_connect(toolbar_button, "toggled", G_CALLBACK(auto_indent_change_cb), (gpointer)&openText);
-
+*/
 	openText.programChangedHandlerId = g_signal_connect(openText.programBuffer, "changed", 
 			G_CALLBACK(program_changed_cd), (gpointer)&openText);
 
 	gtk_main();
 	g_object_unref(G_OBJECT(builder));
 
-	fileClose(&openText.file, openText.filename, GTK_TEXT_BUFFER(openText.outputBuffer));
+	fileClose(&openText.file, openText.filename, TRUE);
 	textStructDestroy(&openText);
 
 	return 0;

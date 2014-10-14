@@ -4,7 +4,7 @@
 #include "callbacks.h"
 
 void build_settings(GtkBuilder *builder, textStruct *text);
-void set_settings(void);
+int set_settings(void);
 
 #endif
 

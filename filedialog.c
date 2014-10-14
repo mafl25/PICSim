@@ -23,16 +23,17 @@ void set_file_filter(gchar **file_patterns)
 	}
 }
 
+//Check if I used this one
 void file_filter_unref(void)
 {
 	g_object_unref(file_filter);
 }
 
-gboolean new_file(FILE **file, gchar **filename, GtkTextBuffer *text_buffer, GtkTextBuffer *output_buffer)
+gboolean new_file(FILE **file, gchar **filename, GtkTextBuffer *text_buffer, gboolean print_output)
 {
 	gboolean returnValue = FALSE;
 	
-	returnValue = save_text_view_to_file(file, filename, text_buffer, output_buffer);
+	returnValue = save_text_view_to_file(file, filename, text_buffer, print_output);
 
 	if(returnValue){
 		if(*filename != NULL){
@@ -40,7 +41,7 @@ gboolean new_file(FILE **file, gchar **filename, GtkTextBuffer *text_buffer, Gtk
 			*filename = NULL;
 		}
 
-		fileClose(file, *filename, output_buffer);
+		fileClose(file, *filename, print_output);
 		
 		GtkTextIter start;
 		GtkTextIter end;
@@ -53,7 +54,7 @@ gboolean new_file(FILE **file, gchar **filename, GtkTextBuffer *text_buffer, Gtk
 	return returnValue;
 }
 
-gboolean save_text_view_to_file(FILE **file, gchar **filename, GtkTextBuffer *text_buffer, GtkTextBuffer *output_buffer)
+gboolean save_text_view_to_file(FILE **file, gchar **filename, GtkTextBuffer *text_buffer, gboolean print_output)
 {
 	GtkTextIter start;
 	GtkTextIter end;
@@ -64,35 +65,35 @@ gboolean save_text_view_to_file(FILE **file, gchar **filename, GtkTextBuffer *te
 		gtk_text_buffer_get_start_iter(text_buffer, &start);
 		gtk_text_buffer_get_end_iter(text_buffer, &end);
 
-		fileClose(file, *filename, output_buffer);
-		if(fileWrite(file, *filename, output_buffer)){
+		fileClose(file, *filename, print_output);
+		if(fileWrite(file, *filename, print_output)){
 			text = gtk_text_buffer_get_text(text_buffer, &start, &end, TRUE);
 			if(fputs(text, *file) == EOF){
-				if(output_buffer != NULL){
-					outputPrint(output_buffer, "Error: File: \"", FALSE);
-					outputPrint(output_buffer, *filename, FALSE);
-					outputPrint(output_buffer, "\" could not be saved.", TRUE);
+				if(print_output){
+					output_print("Error: File: \"", FALSE);
+					output_print(*filename, FALSE);
+					output_print("\" could not be saved.", TRUE);
 				}
 			}else{
-				if(output_buffer != NULL){
-					outputPrint(output_buffer, "Document: \"", FALSE);
-					outputPrint(output_buffer, *filename, FALSE);
-					outputPrint(output_buffer, "\" saved.", TRUE);
+				if(print_output){
+					output_print("Document: \"", FALSE);
+					output_print(*filename, FALSE);
+					output_print("\" saved.", TRUE);
 				}
 				returnValue = TRUE;
 			}
-			fileClose(file, *filename, output_buffer);
+			fileClose(file, *filename, print_output);
 		}
 	}else{
 			g_print("Hola\n");
-			returnValue = save_as_text_view_to_file(file, filename, text_buffer, output_buffer);
+			returnValue = save_as_text_view_to_file(file, filename, text_buffer, print_output);
 	}	
 
 	return returnValue;
 }
 
 
-gboolean open_file(FILE **file, gchar **filename, GtkTextBuffer *output_buffer)
+gboolean open_file(FILE **file, gchar **filename, gboolean print_output)
 {
 	GtkWidget *dialog;
 	gboolean returnValue = TRUE;
@@ -113,10 +114,10 @@ gboolean open_file(FILE **file, gchar **filename, GtkTextBuffer *output_buffer)
 	if(res == GTK_RESPONSE_ACCEPT){
 
 		g_free(*filename);
-		fileClose(file, *filename, output_buffer);
+		fileClose(file, *filename, print_output);
 
 		*filename = gtk_file_chooser_get_filename(chooser);
-		if(!fileOpen(file, *filename, output_buffer)){
+		if(!fileOpen(file, *filename, print_output)){
 			returnValue = FALSE;
 			g_free(*filename);
 		}
@@ -127,7 +128,7 @@ gboolean open_file(FILE **file, gchar **filename, GtkTextBuffer *output_buffer)
 	return returnValue;
 }
 
-gboolean save_as_text_view_to_file(FILE **file, gchar **filename, GtkTextBuffer *text_buffer, GtkTextBuffer *output_buffer)
+gboolean save_as_text_view_to_file(FILE **file, gchar **filename, GtkTextBuffer *text_buffer, gboolean print_output)
 {
 	GtkWidget *dialog;
 	gboolean returnValue = FALSE;
@@ -159,10 +160,10 @@ gboolean save_as_text_view_to_file(FILE **file, gchar **filename, GtkTextBuffer 
 	if(res == GTK_RESPONSE_ACCEPT){
 		if(*filename != NULL)
 			g_free(*filename);
-		fileClose(file, *filename, output_buffer);
+		fileClose(file, *filename, print_output);
 
 		*filename = gtk_file_chooser_get_filename(chooser);
-		returnValue = save_text_view_to_file(file, filename, text_buffer, output_buffer);
+		returnValue = save_text_view_to_file(file, filename, text_buffer, print_output);
 	}
 
 	gtk_widget_destroy(dialog);

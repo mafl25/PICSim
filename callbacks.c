@@ -1,5 +1,6 @@
 #include "callbacks.h"
 #include "filedialog.h"
+#include "outputbuffer.h"
 #include <gtk/gtk.h>
 #include <gtksourceview/gtksource.h>
 #include <stdlib.h>
@@ -70,7 +71,7 @@ void textStructInit(textStruct *text, GtkBuilder *builder)
 	g_object_ref(text->outputBuffer);
 	g_object_ref(text->label);
 
-	gchar *file_patterns[] = {"*.asm", "*.txt", "NULL"};
+	gchar *file_patterns[] = {"*.asm", "*.pic", "NULL"};
 	set_file_filter(file_patterns);
 
 	gtk_label_set_text(GTK_LABEL(text->label), UNSAVED_FILE);
@@ -131,7 +132,7 @@ gboolean open_file_cb(GtkWidget *widget, gpointer data)
 {
 	textStruct *openFile = (textStruct *)data;
 
-	gboolean returnValue = open_file(&openFile->file, &openFile->filename, GTK_TEXT_BUFFER(openFile->outputBuffer));
+	gboolean returnValue = open_file(&openFile->file, &openFile->filename, TRUE);
 	if(returnValue && (openFile->label != NULL))
 		change_label(GTK_LABEL(openFile->label), openFile->filename);
 
@@ -167,7 +168,7 @@ gboolean file_load_to_text_view_cb(GtkWidget *widget, gpointer data)
 		rewind(fileLoad->file);
 		free(text);
 
-		fileClose(&fileLoad->file,fileLoad->filename, GTK_TEXT_BUFFER(fileLoad->outputBuffer));
+		fileClose(&fileLoad->file,fileLoad->filename, TRUE);
 	}
 
 	return returnValue;
@@ -179,7 +180,7 @@ gboolean save_text_view_to_file_cb(GtkWidget *widget, gpointer data)
 	gboolean returnValue = FALSE;
 	
 	returnValue	= save_text_view_to_file(&fileSave->file, &fileSave->filename, 
-			GTK_TEXT_BUFFER(fileSave->programBuffer), GTK_TEXT_BUFFER(fileSave->outputBuffer));
+			GTK_TEXT_BUFFER(fileSave->programBuffer), TRUE);
 
 	if(returnValue && (fileSave->label != NULL))
 		change_label(GTK_LABEL(fileSave->label), fileSave->filename);
@@ -193,7 +194,7 @@ gboolean save_as_text_view_to_file_cb(GtkWidget *widget, gpointer data)
 	gboolean returnValue = FALSE;
 	
 	returnValue	= save_as_text_view_to_file(&fileSave->file, &fileSave->filename, 
-			GTK_TEXT_BUFFER(fileSave->programBuffer), GTK_TEXT_BUFFER(fileSave->outputBuffer));
+			GTK_TEXT_BUFFER(fileSave->programBuffer), TRUE);
 
 	if(returnValue && (fileSave->label != NULL))
 		change_label(GTK_LABEL(fileSave->label), fileSave->filename);
@@ -208,7 +209,7 @@ gboolean new_file_cb(GtkWidget *widget, gpointer data)
 	g_signal_handler_block((gpointer)newFile->programBuffer, newFile->programChangedHandlerId);
 
 	returnValue = new_file(&newFile->file, &newFile->filename, 
-			GTK_TEXT_BUFFER(newFile->programBuffer), GTK_TEXT_BUFFER(newFile->outputBuffer));
+			GTK_TEXT_BUFFER(newFile->programBuffer), TRUE);
 
 	if(returnValue && (newFile->label != NULL))
 		change_label(GTK_LABEL(newFile->label), newFile->filename);
@@ -283,12 +284,18 @@ gboolean right_margin_width_set_cb(GtkWidget *widget, gpointer data)
 	return TRUE;
 }
 
+//I think I have to find a way to detect which wraping mode id being used
+//Use static variable
 gboolean wrap_text_cb(GtkWidget *widget, gpointer data)
 {
 	textStruct *text = (textStruct *)data;
 
+	GtkWrapMode mode = gtk_text_view_get_wrap_mode(GTK_TEXT_VIEW(text->programTextView));
+
 	gtk_text_view_set_wrap_mode(GTK_TEXT_VIEW(text->programTextView),
 			(gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(widget)))? (GTK_WRAP_WORD):(GTK_WRAP_NONE));
+
+	output_print("W CB", TRUE);
 
 	return TRUE;
 }

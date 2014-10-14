@@ -2,10 +2,22 @@
 #include <gtk/gtk.h>
 #include <assert.h>
 
-//Prints a message to the output buffer, adding an \n character at the end.
-void outputPrint(GtkTextBuffer *outputBuffer, const gchar *message, gboolean addNewline)
+static GtkTextBuffer *outputBuffer;
+
+void set_output_buffer(GtkTextBuffer *buffer)
 {
-	assert(outputBuffer);
+	outputBuffer = buffer;
+}
+
+GtkTextBuffer * get_ouput_buffer(void)
+{
+	return outputBuffer;
+}
+
+//Prints a message to the output buffer, adding an \n character at the end.
+void output_print(const gchar *message, gboolean addNewline)
+{
+	assert(outputBuffer != NULL);
 	assert(message);
 
 	GtkTextIter end;

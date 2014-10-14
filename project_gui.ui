@@ -453,6 +453,7 @@
                 <child>
                   <object class="GtkCheckButton" id="right_margin">
                     <property name="label" translatable="yes">Show right margin at:</property>
+                    <property name="name">right_margin</property>
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
                     <property name="receives_default">False</property>
@@ -520,7 +521,6 @@
                   <object class="GtkCheckButton" id="split_word">
                     <property name="label" translatable="yes">Split words at end of line.</property>
                     <property name="visible">True</property>
-                    <property name="sensitive">False</property>
                     <property name="can_focus">True</property>
                     <property name="receives_default">False</property>
                     <property name="tooltip_text" translatable="yes">Splits the words at the end of a line.</property>
@@ -649,6 +649,7 @@
                 <child>
                   <object class="GtkCheckButton" id="space_tabs">
                     <property name="label" translatable="yes">Spaces instead of tabs</property>
+                    <property name="name">space_tabs</property>
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
                     <property name="receives_default">False</property>
