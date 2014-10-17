@@ -4,6 +4,7 @@
 #include "filemanager.h"
 #include "commoncallbacks.h"
 #include "outputbuffer.h"
+#include "customstring.h"
 
 #include <gtk/gtk.h>
 #include <gtksourceview/gtksource.h>
@@ -153,35 +154,35 @@ gboolean new_file_cb(GtkWidget *widget, gpointer data)
 //Edit Menu CallBack Functions
 //-------------------------------------------------------------------------------------------------------
 
-gboolean copy_text(GtkWidget *widget, gpointer data)
+gboolean copy_text_cb(GtkWidget *widget, gpointer data)
 {
 	send_key(GTK_WIDGET(data), GDK_KEY_c, GDK_CONTROL_MASK);
 
 	return TRUE;
 }
 
-gboolean cut_text(GtkWidget *widget, gpointer data)
+gboolean cut_text_cb(GtkWidget *widget, gpointer data)
 {
 	send_key(GTK_WIDGET(data), GDK_KEY_x, GDK_CONTROL_MASK);
 
 	return TRUE;
 }
 
-gboolean paste_text(GtkWidget *widget, gpointer data)
+gboolean paste_text_cb(GtkWidget *widget, gpointer data)
 {
 	send_key(GTK_WIDGET(data), GDK_KEY_v, GDK_CONTROL_MASK);
 
 	return TRUE;
 }
 
-gboolean delete_text(GtkWidget *widget, gpointer data)
+gboolean delete_text_cb(GtkWidget *widget, gpointer data)
 {
 	send_key(GTK_WIDGET(data), GDK_KEY_Delete, 0);
 
 	return TRUE;
 }
 
-gboolean undo_text(GtkWidget *widget, gpointer data)
+gboolean undo_text_cb(GtkWidget *widget, gpointer data)
 {
 	textStruct *text = (textStruct *)data;
 	
@@ -193,7 +194,7 @@ gboolean undo_text(GtkWidget *widget, gpointer data)
 	}
 }
 
-gboolean redo_text(GtkWidget *widget, gpointer data)
+gboolean redo_text_cb(GtkWidget *widget, gpointer data)
 {
 	textStruct *text = (textStruct *)data;
 	
@@ -205,11 +206,31 @@ gboolean redo_text(GtkWidget *widget, gpointer data)
 	}
 }
 
+gboolean build_program_cb(GtkWidget *widget, gpointer data)
+{
+	textStruct *text = (textStruct *)data;
+	variablesArray variables;
+	gboolean output;
+
+	variables.lastAddress = LAST_RAM_ADDRESS;
+	output = variables_array_init(text, &variables);
+	if(output)
+		output = variables_array_set_addresses(&variables);
+	variables_array_destroy(&variables);
+
+	if(!output)
+		output_print("Build failed.", TRUE);
+	else
+		output_print("Build succesful.", TRUE);
+
+	return output;
+}
+
 //-------------------------------------------------------------------------------------------------------
 //Initialization
 //-------------------------------------------------------------------------------------------------------
 
-void build_menu_bar(GtkBuilder *builder, textStruct *text, GtkWindow *window)
+void build_menubar(GtkBuilder *builder, textStruct *text, GtkWindow *window)
 {
 	gtk_source_buffer_set_max_undo_levels(GTK_SOURCE_BUFFER(text->programBuffer), -1);
 
@@ -236,21 +257,24 @@ void build_menu_bar(GtkBuilder *builder, textStruct *text, GtkWindow *window)
 	g_signal_connect(menu_item, "activate", G_CALLBACK(set_saved_cb), (gpointer)(text));
 
 	menu_item = gtk_builder_get_object(builder, "undo_menu");
-	g_signal_connect(menu_item, "activate", G_CALLBACK(undo_text), (gpointer)(text));
+	g_signal_connect(menu_item, "activate", G_CALLBACK(undo_text_cb), (gpointer)(text));
 
 	menu_item = gtk_builder_get_object(builder, "redo_menu");
-	g_signal_connect(menu_item, "activate", G_CALLBACK(redo_text), (gpointer)(text));
+	g_signal_connect(menu_item, "activate", G_CALLBACK(redo_text_cb), (gpointer)(text));
 
 	menu_item = gtk_builder_get_object(builder, "cut_menu");
-	g_signal_connect(menu_item, "activate", G_CALLBACK(cut_text), (gpointer)window);
+	g_signal_connect(menu_item, "activate", G_CALLBACK(cut_text_cb), (gpointer)window);
 
 	menu_item = gtk_builder_get_object(builder, "copy_menu");
-	g_signal_connect(menu_item, "activate", G_CALLBACK(copy_text), (gpointer)window);
+	g_signal_connect(menu_item, "activate", G_CALLBACK(copy_text_cb), (gpointer)window);
 
 	menu_item = gtk_builder_get_object(builder, "paste_menu");
-	g_signal_connect(menu_item, "activate", G_CALLBACK(paste_text), (gpointer)window);
+	g_signal_connect(menu_item, "activate", G_CALLBACK(paste_text_cb), (gpointer)window);
 
 	menu_item = gtk_builder_get_object(builder, "delete_menu");
-	g_signal_connect(menu_item, "activate", G_CALLBACK(delete_text), (gpointer)window);
+	g_signal_connect(menu_item, "activate", G_CALLBACK(delete_text_cb), (gpointer)window);
+
+	menu_item = gtk_builder_get_object(builder, "build_menu");
+	g_signal_connect(menu_item, "activate", G_CALLBACK(build_program_cb), (gpointer)(text));
 }
 

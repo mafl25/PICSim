@@ -82,6 +82,7 @@ gboolean save_text_view_to_file(FILE **file, gchar **filename, GtkTextBuffer *te
 				}
 				returnValue = TRUE;
 			}
+			g_free(text);
 			fileClose(file, *filename, print_output);
 		}
 	}else{

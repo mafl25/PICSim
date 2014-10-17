@@ -19,6 +19,8 @@ int main(int argc, char *argv[])
 {
 	GtkBuilder *builder;
 	GObject *window;
+	GObject *outputBuffer;
+	GObject *outputText;
 
 	gtk_init(&argc, &argv);
 
@@ -29,16 +31,19 @@ int main(int argc, char *argv[])
 	gtk_window_maximize(GTK_WINDOW(window));
 	g_signal_connect(window, "destroy", G_CALLBACK(gtk_main_quit), NULL);
 
-
 	textStruct openText;
-	textStructInit(&openText, builder);
+	text_struct_init(&openText, builder);
 
-	set_output_buffer(GTK_TEXT_BUFFER(openText.outputBuffer));
+	outputBuffer = gtk_builder_get_object(builder, "output_buffer");
+	set_output_buffer(GTK_TEXT_BUFFER(outputBuffer));
+
+	outputText = gtk_builder_get_object(builder, "text_output");
+	set_output_text(GTK_TEXT_VIEW(outputText));
 
 	gchar *file_patterns[] = {"*.asm", "*.pic", "NULL"};
 	set_file_filter(file_patterns);
 
-	build_menu_bar(builder, &openText, GTK_WINDOW(window));
+	build_menubar(builder, &openText, GTK_WINDOW(window));
 	build_toolbar(builder, &openText, GTK_WINDOW(window));
 	build_settings(builder, &openText);
 	set_settings();
@@ -51,7 +56,8 @@ int main(int argc, char *argv[])
 
 	fileClose(&openText.file, openText.filename, TRUE);
 	file_filter_unref();
-	textStructDestroy(&openText);
+	destroy_output_buffer();
+	text_struct_destroy(&openText);
 
 	return 0;
 }

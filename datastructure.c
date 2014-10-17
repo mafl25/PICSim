@@ -1,9 +1,15 @@
 #include "datastructure.h"
 #include "filedialog.h"
+#include "outputbuffer.h"
+#include "customstring.h"
+#include "asmkeywords.h"
+
 #include <gtk/gtk.h>
 #include <gtksourceview/gtksource.h>
+#include <string.h>
+#include <stdlib.h>
 
-void textStructInit(textStruct *text, GtkBuilder *builder)
+void text_struct_init(textStruct *text, GtkBuilder *builder)
 {
 	text->programBuffer = G_OBJECT(gtk_source_buffer_new(NULL));
 	text->programTextView = G_OBJECT(gtk_source_view_new_with_buffer(
@@ -12,17 +18,12 @@ void textStructInit(textStruct *text, GtkBuilder *builder)
 	gtk_container_add(GTK_CONTAINER(scrolled), GTK_WIDGET(text->programTextView));
 	gtk_widget_show(GTK_WIDGET(text->programTextView));
 
-	text->outputTextView = gtk_builder_get_object(builder, "text_output");
-	//Not sure if I use outputTextView so far
-	text->outputBuffer = gtk_builder_get_object(builder, "output_buffer");
 	text->label = gtk_builder_get_object(builder, "text_name");
 	text->file = NULL;
 	text->filename = NULL;
 
 	g_object_ref(text->programTextView);
-	g_object_ref(text->outputTextView);
 	g_object_ref(text->programBuffer);
-	g_object_ref(text->outputBuffer);
 	g_object_ref(text->label);
 
 	gtk_label_set_text(GTK_LABEL(text->label), UNSAVED_FILE);
@@ -30,12 +31,162 @@ void textStructInit(textStruct *text, GtkBuilder *builder)
 	text->isSaved = TRUE;
 }
 
-void textStructDestroy(textStruct *text)
+void text_struct_destroy(textStruct *text)
 {
 	g_free(text->filename);
 	g_object_unref(text->programTextView);
-	g_object_unref(text->outputTextView);
 	g_object_unref(text->programBuffer);
-	g_object_unref(text->outputBuffer);
 	g_object_unref(text->label);
 }
+
+gboolean variables_array_init(textStruct *text, variablesArray *variables)
+{
+	int j;
+	int i;
+	GtkTextIter start;
+	GtkTextIter end;
+	int variableNumber = -1;
+	variables->variableCount = 0;
+
+	gtk_text_buffer_get_bounds(GTK_TEXT_BUFFER(text->programBuffer), &start, &end);
+	gchar *string = gtk_text_buffer_get_text(GTK_TEXT_BUFFER(text->programBuffer), &start, &end, TRUE);
+
+	GString *word = g_string_new(NULL);
+	gsize position = 0;
+
+	glib_get_word_string(word, string, &position);
+
+	if(word->len == 0){
+		output_print("Error: Empty document.", TRUE);
+		return FALSE;
+	}
+
+	if(strcmp(word->str, VARIABLES)){
+		output_print("Error: Document not properly initialized. It must begin with "VARIABLES, TRUE);
+		return FALSE;
+	}
+
+	while((strcmp(word->str, SPOINT)) && (glib_get_word_string(word, string, &position)))
+		variableNumber++;
+
+	if(word->len == 0){
+		output_print("Error: "SPOINT" was not found.", TRUE);
+		return FALSE;	
+	}
+
+	glib_get_word_string(word, string, &position);
+
+	if(!strcmp(word->str, CODE)){
+		variables->startingPoint = 0x00;
+	}else{
+		variables->startingPoint = glib_hex_string_to_int(word);
+
+		if(variables->startingPoint == EOF){
+			output_print("Error: Starting point has incorrect hex format: ", FALSE);
+			output_print(word->str, TRUE);
+			return FALSE;
+		}
+
+		glib_get_word_string(word, string, &position);
+
+		if(word->len == 0){
+			output_print("Error: "CODE" was not found.", TRUE);
+			return FALSE;	
+		}
+
+		if(strcmp(word->str, CODE)){
+			output_print("Error: "CODE" must follow the Starting point.", TRUE);
+			return FALSE;
+		}
+	}
+
+	if(variableNumber){
+		variables->variableList = (GString **)calloc(variableNumber, sizeof(GString *));
+	}else{
+		variables->variableList =  NULL;
+	}
+
+	position = 0;
+	glib_get_word_string(word, string, &position);
+
+	for (j = 0; j < variableNumber; ++j){
+		glib_get_word_string(word, string, &position);
+
+		if(!(g_ascii_isalpha(word->str[0]) || (word->str[0] == '_') || (word->str[0] & 0x80))){
+			output_print("Error: Variable names must start with a letter or an underscore: ", FALSE);
+			output_print(word->str, TRUE);
+			return FALSE;
+		}
+
+		for (i = 0; i < word->len; ++i){
+			if(!(g_ascii_isalnum(word->str[i]) || (word->str[i] == '_') || (word->str[i] & 0x80))){
+				output_print("Error: Variable has ilegal character: ", FALSE);
+				output_print(word->str, TRUE);
+				return FALSE;	
+			}
+		}
+
+		for (i = 0; i < j; ++i)
+			if(!strcmp(variables->variableList[i]->str, word->str)){
+				output_print("Error: Repeated variable:", FALSE);
+				output_print(word->str, TRUE);
+				return FALSE;	
+			}
+			
+		variables->variableList[j] = g_string_new_len(word->str, word->len);			
+		variables->variableCount++;
+	}
+
+	g_string_free(word, TRUE);
+	g_free(string);
+
+	return TRUE;
+}
+
+gboolean variables_array_set_addresses(variablesArray *variables)
+{
+	if(variables->variableCount > (variables->lastAddress + 1 - variables->startingPoint)){
+		char numberVar[15] = {0};
+
+		output_print("Error: Too many variables: ", FALSE);
+		sprintf(numberVar, "%d", variables->variableCount);
+		output_print(numberVar, TRUE);
+
+		output_print("Max number of variables is: ", FALSE);
+		sprintf(numberVar, "%d", variables->lastAddress + 1);
+		output_print(numberVar, FALSE);
+		output_print(". Check also your Start point.", TRUE);
+
+		return FALSE;
+	}
+
+	if(variables->variableCount == 0){
+		variables->variableAddress = NULL;
+	}else{
+		variables->variableAddress = (int *)calloc(variables->variableCount, sizeof(int));
+		if(variables->variableAddress == NULL){
+			output_print("Error: variableAddress could be initialized.", TRUE);
+			return FALSE;
+		}
+
+		int j;
+		for (j = 0; j < variables->variableCount; ++j)
+			variables->variableAddress[j] = variables->startingPoint + j;
+	}
+
+	return TRUE;
+}
+
+gboolean variables_array_destroy(variablesArray *variables)
+{
+	int j;
+	if(variables->variableCount > 0){
+		for (j = 0; j < variables->variableCount; ++j){
+			g_string_free(variables->variableList[j], TRUE);
+		}
+		g_free(variables->variableList);
+	}
+
+	return TRUE;
+}
+

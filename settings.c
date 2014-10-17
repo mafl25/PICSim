@@ -210,9 +210,9 @@ int set_settings(void)
 			return -1;
 	}
 
-	guchar *buffer;
-	guchar *name;
-	guchar *property;
+	gchar *buffer;
+	gchar *name;
+	gchar *property;
 	int bufferPosition = 0;
 	int bufferPositionHistory = 0;
 	int j;
@@ -223,13 +223,13 @@ int set_settings(void)
 	for (j = 0; j < byteCount; ++j)
 		buffer[j] = fgetc(settingsFile);
 
-	while((bufferPosition = getWordString(&buffer[bufferPositionHistory], &name)) > 0){
+	while((bufferPosition = get_word_string(&buffer[bufferPositionHistory], &name)) > 0){
 		bufferPositionHistory += bufferPosition;
 		
 		for (j = 0; j < WIDGET_NUMBER; ++j)
 		{
 			if(strcmp((const char *)name, sWidgets[j].name) == 0){
-				if((bufferPosition = getWordString(&buffer[bufferPositionHistory], &property)) > 0){
+				if((bufferPosition = get_word_string(&buffer[bufferPositionHistory], &property)) > 0){
 					bufferPositionHistory += bufferPosition;
 					sWidgets[j].property_change(sWidgets[j].widget, (const gchar *)property);
 					g_free(property);

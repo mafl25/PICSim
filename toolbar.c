@@ -23,17 +23,20 @@ void build_toolbar(GtkBuilder *builder, textStruct *text, GtkWindow *window)
 	g_signal_connect(toolbar_button, "clicked", G_CALLBACK(set_saved_cb), (gpointer)(text));
 
 	toolbar_button = gtk_builder_get_object(builder, "undo_button");
-	g_signal_connect(toolbar_button, "clicked", G_CALLBACK(undo_text), (gpointer)(text));
+	g_signal_connect(toolbar_button, "clicked", G_CALLBACK(undo_text_cb), (gpointer)(text));
 
 	toolbar_button = gtk_builder_get_object(builder, "redo_button");
-	g_signal_connect(toolbar_button, "clicked", G_CALLBACK(redo_text), (gpointer)(text));
+	g_signal_connect(toolbar_button, "clicked", G_CALLBACK(redo_text_cb), (gpointer)(text));
 
 	toolbar_button = gtk_builder_get_object(builder, "copy_button");
-	g_signal_connect(toolbar_button, "clicked", G_CALLBACK(copy_text), (gpointer)window);
+	g_signal_connect(toolbar_button, "clicked", G_CALLBACK(copy_text_cb), (gpointer)window);
 
 	toolbar_button = gtk_builder_get_object(builder, "cut_button");
-	g_signal_connect(toolbar_button, "clicked", G_CALLBACK(cut_text), (gpointer)window);
+	g_signal_connect(toolbar_button, "clicked", G_CALLBACK(cut_text_cb), (gpointer)window);
 
 	toolbar_button = gtk_builder_get_object(builder, "paste_button");
-	g_signal_connect(toolbar_button, "clicked", G_CALLBACK(paste_text), (gpointer)window);
+	g_signal_connect(toolbar_button, "clicked", G_CALLBACK(paste_text_cb), (gpointer)window);
+
+	toolbar_button = gtk_builder_get_object(builder, "build_button");
+	g_signal_connect(toolbar_button, "clicked", G_CALLBACK(build_program_cb), (gpointer)(text));
 }
