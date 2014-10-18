@@ -5,6 +5,7 @@
 #include "commoncallbacks.h"
 #include "outputbuffer.h"
 #include "customstring.h"
+#include "variabletreeview.h"
 
 #include <gtk/gtk.h>
 #include <gtksourceview/gtksource.h>
@@ -210,12 +211,25 @@ gboolean build_program_cb(GtkWidget *widget, gpointer data)
 {
 	textStruct *text = (textStruct *)data;
 	variablesArray variables;
+	labelsArray labels;
 	gboolean output;
 
 	variables.lastAddress = LAST_RAM_ADDRESS;
 	output = variables_array_init(text, &variables);
 	if(output)
 		output = variables_array_set_addresses(&variables);
+
+	if(output)
+		output = labels_array_init(text, &labels); 
+
+	if(output){
+		variable_tree_view_clear();
+		int j;
+		for (j = 0; j < variables.variableCount; ++j){
+			variable_tree_view_append_row(variables.variableList[j]->str, variables.variableAddress[j], 0xA);	
+		}
+	}
+
 	variables_array_destroy(&variables);
 
 	if(!output)

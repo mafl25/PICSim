@@ -6,6 +6,7 @@
 #include "toolbar.h"
 #include "commoncallbacks.h"
 #include "outputbuffer.h"
+#include "variabletreeview.h"
 
 #include <gtk/gtk.h>
 #include <gdk/gdk.h>
@@ -21,6 +22,7 @@ int main(int argc, char *argv[])
 	GObject *window;
 	GObject *outputBuffer;
 	GObject *outputText;
+	GObject *varTreeView;
 
 	gtk_init(&argc, &argv);
 
@@ -51,12 +53,17 @@ int main(int argc, char *argv[])
 	openText.programChangedHandlerId = g_signal_connect(openText.programBuffer, "changed", 
 			G_CALLBACK(program_changed_cd), (gpointer)&openText);
 
+	varTreeView = gtk_builder_get_object(builder, "variable_view_tree");
+	variable_tree_view_init(GTK_TREE_VIEW(varTreeView));
+
+
 	gtk_main();
 	g_object_unref(G_OBJECT(builder));
 
 	fileClose(&openText.file, openText.filename, TRUE);
 	file_filter_unref();
 	destroy_output_buffer();
+	destroy_output_text();
 	text_struct_destroy(&openText);
 
 	return 0;

@@ -108,6 +108,34 @@ gboolean glib_get_word_string(GString *word, const gchar *string, gsize *positio
 	return wordFound;
 }
 
+gboolean glib_get_line_string(GString *line, const gchar *string, gsize *position)
+{
+	assert(line);
+	assert(string);
+	gboolean lineFound = FALSE;
+	gsize length = 0;
+	
+	g_string_erase(line, 0, -1);
+
+	while(!lineFound){
+		if(string[*position] == '\0')
+			break;
+
+		lineFound = TRUE;
+
+		while(string[*position + length] != '\n' && string[*position + length] != '\0')
+			length++;
+
+		if(string[*position + length] == '\n')
+			length++;
+
+		g_string_insert_len(line, -1, &string[(*position)], length);
+		(*position) += length;
+	}
+	
+	return lineFound;
+}
+
 int glib_hex_string_to_int(GString *string)
 {
 	int charValue = 0;

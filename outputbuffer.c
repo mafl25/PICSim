@@ -19,6 +19,7 @@ void destroy_output_buffer(void)
 void set_output_text(GtkTextView *text)
 {
 	outputText = text;
+	g_object_ref(outputText);
 }
 
 void destroy_output_text(void)
@@ -42,7 +43,9 @@ void output_print(const gchar *message, gboolean addNewline)
 	}
 
 	if(outputText){
+		GtkTextMark *mark = gtk_text_buffer_get_insert(outputBuffer);
 		gtk_text_buffer_get_end_iter(outputBuffer, &end);
-		gtk_text_view_scroll_to_iter(outputText, &end, 0.1, FALSE, 1.0, 0.0);	
+		gtk_text_buffer_move_mark(outputBuffer, mark, &end);
+		gtk_text_view_scroll_to_mark(outputText, mark, 0.0, FALSE, 0.0, 0.0);	
 	}
 }

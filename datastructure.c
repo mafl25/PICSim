@@ -39,7 +39,7 @@ void text_struct_destroy(textStruct *text)
 	g_object_unref(text->label);
 }
 
-gboolean variables_array_init(textStruct *text, variablesArray *variables)
+gboolean variables_array_init(const textStruct *text, variablesArray *variables)
 {
 	int j;
 	int i;
@@ -58,11 +58,15 @@ gboolean variables_array_init(textStruct *text, variablesArray *variables)
 
 	if(word->len == 0){
 		output_print("Error: Empty document.", TRUE);
+		g_string_free(word, TRUE);
+		g_free(string);
 		return FALSE;
 	}
 
 	if(strcmp(word->str, VARIABLES)){
 		output_print("Error: Document not properly initialized. It must begin with "VARIABLES, TRUE);
+		g_string_free(word, TRUE);
+		g_free(string);
 		return FALSE;
 	}
 
@@ -71,6 +75,8 @@ gboolean variables_array_init(textStruct *text, variablesArray *variables)
 
 	if(word->len == 0){
 		output_print("Error: "SPOINT" was not found.", TRUE);
+		g_string_free(word, TRUE);
+		g_free(string);
 		return FALSE;	
 	}
 
@@ -84,6 +90,8 @@ gboolean variables_array_init(textStruct *text, variablesArray *variables)
 		if(variables->startingPoint == EOF){
 			output_print("Error: Starting point has incorrect hex format: ", FALSE);
 			output_print(word->str, TRUE);
+			g_string_free(word, TRUE);
+			g_free(string);
 			return FALSE;
 		}
 
@@ -91,11 +99,15 @@ gboolean variables_array_init(textStruct *text, variablesArray *variables)
 
 		if(word->len == 0){
 			output_print("Error: "CODE" was not found.", TRUE);
+			g_string_free(word, TRUE);
+			g_free(string);
 			return FALSE;	
 		}
 
 		if(strcmp(word->str, CODE)){
 			output_print("Error: "CODE" must follow the Starting point.", TRUE);
+			g_string_free(word, TRUE);
+			g_free(string);
 			return FALSE;
 		}
 	}
@@ -115,13 +127,17 @@ gboolean variables_array_init(textStruct *text, variablesArray *variables)
 		if(!(g_ascii_isalpha(word->str[0]) || (word->str[0] == '_') || (word->str[0] & 0x80))){
 			output_print("Error: Variable names must start with a letter or an underscore: ", FALSE);
 			output_print(word->str, TRUE);
+			g_string_free(word, TRUE);
+			g_free(string);
 			return FALSE;
 		}
 
-		for (i = 0; i < word->len; ++i){
+		for (i = 1; i < word->len; ++i){
 			if(!(g_ascii_isalnum(word->str[i]) || (word->str[i] == '_') || (word->str[i] & 0x80))){
 				output_print("Error: Variable has ilegal character: ", FALSE);
 				output_print(word->str, TRUE);
+				g_string_free(word, TRUE);
+				g_free(string);
 				return FALSE;	
 			}
 		}
@@ -130,6 +146,8 @@ gboolean variables_array_init(textStruct *text, variablesArray *variables)
 			if(!strcmp(variables->variableList[i]->str, word->str)){
 				output_print("Error: Repeated variable:", FALSE);
 				output_print(word->str, TRUE);
+				g_string_free(word, TRUE);
+				g_free(string);
 				return FALSE;	
 			}
 			
@@ -190,3 +208,77 @@ gboolean variables_array_destroy(variablesArray *variables)
 	return TRUE;
 }
 
+gboolean labels_array_init(const textStruct *text, labelsArray *labels)
+{
+	labels->labelCount = 0;
+	int labelNumber = 0;
+	GtkTextIter start;
+	GtkTextIter end;
+	GString *word = g_string_new(NULL);
+	GString *line = g_string_new(NULL);
+	gsize position = 0;
+	gsize secondPos = 0;
+	gsize codeStartPos;
+	int j;
+	
+	gtk_text_buffer_get_bounds(GTK_TEXT_BUFFER(text->programBuffer), &start, &end);
+	gchar *string = gtk_text_buffer_get_text(GTK_TEXT_BUFFER(text->programBuffer), &start, &end, TRUE);
+
+
+	while((strcmp(word->str, CODE)) && (glib_get_word_string(word, string, &position)));
+	codeStartPos = position;
+
+	while(glib_get_line_string(line, string, &position)){
+		if(!g_ascii_isspace(line->str[0])){
+			glib_get_word_string(word, line->str, &secondPos);
+
+			if(!(g_ascii_isalpha(word->str[0]) || (word->str[0] == '_') || (word->str[0] & 0x80))){
+				output_print("Error: Labels must start with a letter or an underscore: ", FALSE);
+				output_print(word->str, TRUE);
+				g_string_free(word, TRUE);
+				g_string_free(line, TRUE);
+				g_free(string);
+				return FALSE;
+			}
+
+			for (j = 0; j < word->len; ++j){
+				if(!(g_ascii_isalnum(word->str[j]) || (word->str[j] == '_') || (word->str[j] & 0x80))){
+					output_print("Error: Label has ilegal character: ", FALSE);
+					output_print(word->str, TRUE);
+					g_string_free(word, TRUE);
+					g_string_free(line, TRUE);
+					g_free(string);
+					return FALSE;	
+				}
+				
+			}
+
+			if(glib_get_word_string(word, line->str, &secondPos)){
+				output_print("Error: no words can follow a label: ", FALSE);
+				output_print(line->str, TRUE);
+				g_string_free(word, TRUE);
+				g_string_free(line, TRUE);
+				g_free(string);
+				return FALSE;
+			}
+
+			labelNumber++;
+			secondPos = 0;
+		}
+	}
+
+	if(labelNumber){
+		labels->labelList = (GString **)calloc(labelNumber, sizeof(GString *));
+	}else{
+		labels->labelList = NULL;	
+	}
+
+	//UNDER CONSTRUCTION
+
+	g_print("%d\n", labelNumber);
+
+	g_string_free(word, TRUE);
+	g_string_free(line, TRUE);
+	g_free(string);
+	return TRUE;
+}

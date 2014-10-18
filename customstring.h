@@ -36,5 +36,6 @@
 
 int get_word_string(char *string, char **word) ;
 gboolean glib_get_word_string(GString *word, const gchar *string, gsize *position);
+gboolean glib_get_line_string(GString *line, const gchar *string, gsize *position);
 
 int glib_hex_string_to_int(GString *string);
