@@ -40,6 +40,13 @@ void text_struct_destroy(textStruct *text)
 	g_object_unref(text->label);
 }
 
+variablesArray *variables_array_new(void)
+{
+	variablesArray *variables = NULL;
+	variables = calloc(sizeof(variablesArray), 1);
+	return variables;
+}
+
 gboolean variables_array_init(const textStruct *text, variablesArray *variables)
 {
 	gboolean returnValue = FALSE;
@@ -229,12 +236,11 @@ gboolean variables_array_replace_to_file(const textStruct *text, variablesArray 
 	GString *replacedString = g_string_new(&string[position]);
 	g_free(string);
 
-	//Crear funciones de new para las datastructures.
 	fileWrite(&fWrite, medBasename->str, TRUE);
 
 	int j;
 	for (j = 0; j < variables->variableCount; ++j){
-		g_string_printf(hexString, "0X%x", variables->variableAddress[j]);
+		g_string_printf(hexString, "0X%X", variables->variableAddress[j]);
 		glib_replace_word_from_string(replacedString, variables->variableList[j], hexString);
 	}
 
@@ -264,6 +270,13 @@ gboolean variables_array_destroy(variablesArray *variables)
 	g_free(variables);
 
 	return TRUE;
+}
+
+labelsArray *labels_array_new(void)
+{
+	labelsArray *labels = NULL;
+	labels = calloc(sizeof(labelsArray), 1);
+	return labels;
 }
 
 gboolean labels_array_init(const textStruct *text, labelsArray *labels)
@@ -319,7 +332,7 @@ gboolean labels_array_init(const textStruct *text, labelsArray *labels)
 	}
 
 	labels->labelList = NULL;	
-	labels->labelPos = NULL; //need to make sure this actually works
+	labels->labelPos = NULL; 
 	labels->labelDir = NULL;
 
 	if(labelNumber){
@@ -376,7 +389,7 @@ gboolean labels_array_destroy(labelsArray *labels)
 {
 	int j;
 
-	if(labels->labelCount){
+	if(labels->labelCount > 0){
 		for (j = 0; j < labels->labelCount; ++j)
 			g_string_free(labels->labelList[j], TRUE);
 		g_free(labels->labelList);

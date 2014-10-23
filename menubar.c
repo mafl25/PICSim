@@ -212,13 +212,17 @@ gboolean redo_text_cb(GtkWidget *widget, gpointer data)
 gboolean build_program_cb(GtkWidget *widget, gpointer data)
 {
 	textStruct *text = (textStruct *)data;
-	variablesArray *variables = (variablesArray *)calloc(sizeof(variablesArray), 1);
-	labelsArray *labels = (labelsArray *)calloc(sizeof(labelsArray), 1);
+	variablesArray *variables = variables_array_new();
+	labelsArray *labels = labels_array_new();
 	gboolean output = TRUE;
 
 	save_text_view_to_file_cb(widget, text);
-	if(!g_str_has_suffix(text->filename, ".asm")){
-		output_print("ERROR: Wrong filetype.", TRUE);
+	if(text->filename != NULL){
+		if(!g_str_has_suffix(text->filename, ".asm")){
+			output_print("ERROR: Wrong filetype.", TRUE);
+			output = FALSE;
+		}
+	}else{
 		output = FALSE;
 	}
 

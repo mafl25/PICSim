@@ -38,11 +38,13 @@ typedef struct
 void text_struct_init(textStruct *text, GtkBuilder *builder);
 void text_struct_destroy(textStruct *text);
 
+variablesArray *variables_array_new(void);
 gboolean variables_array_init(const textStruct *text, variablesArray *variables);
 gboolean variables_array_set_addresses(variablesArray *variables);
 gboolean variables_array_replace_to_file(const textStruct *text, variablesArray *variables);
 gboolean variables_array_destroy(variablesArray *variables);
 
+labelsArray *labels_array_new(void);
 gboolean labels_array_init(const textStruct *text, labelsArray *labels);
 gboolean labels_array_destroy(labelsArray *labels);
 
