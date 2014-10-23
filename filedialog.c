@@ -86,7 +86,6 @@ gboolean save_text_view_to_file(FILE **file, gchar **filename, GtkTextBuffer *te
 			fileClose(file, *filename, print_output);
 		}
 	}else{
-			g_print("Hola\n");
 			returnValue = save_as_text_view_to_file(file, filename, text_buffer, print_output);
 	}	
 

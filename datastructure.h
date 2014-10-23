@@ -40,10 +40,12 @@ void text_struct_destroy(textStruct *text);
 
 gboolean variables_array_init(const textStruct *text, variablesArray *variables);
 gboolean variables_array_set_addresses(variablesArray *variables);
+gboolean variables_array_replace_to_file(const textStruct *text, variablesArray *variables);
 gboolean variables_array_destroy(variablesArray *variables);
 
 gboolean labels_array_init(const textStruct *text, labelsArray *labels);
-gboolean labels_array_destroy(variablesArray *variables);
+gboolean labels_array_destroy(labelsArray *labels);
 
+gboolean label_array_conflict_check(const variablesArray *variables, const labelsArray *labels);
 
 #endif

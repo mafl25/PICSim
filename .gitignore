@@ -1,6 +1,8 @@
 *.pyc
 *.asm
 *.asm~
+*.asmmed
+*.asmmed~
 *.out
 *.py
 *.swp

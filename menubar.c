@@ -114,8 +114,10 @@ gboolean save_text_view_to_file_cb(GtkWidget *widget, gpointer data)
 	returnValue	= save_text_view_to_file(&fileSave->file, &fileSave->filename, 
 			GTK_TEXT_BUFFER(fileSave->programBuffer), TRUE);
 
-	if(returnValue && (fileSave->label != NULL))
+	if(returnValue && (fileSave->label != NULL)){
 		change_label(GTK_LABEL(fileSave->label), fileSave->filename);
+		fileSave->isSaved = TRUE;
+	}
 	
 	return returnValue;
 }
@@ -210,27 +212,45 @@ gboolean redo_text_cb(GtkWidget *widget, gpointer data)
 gboolean build_program_cb(GtkWidget *widget, gpointer data)
 {
 	textStruct *text = (textStruct *)data;
-	variablesArray variables;
-	labelsArray labels;
-	gboolean output;
+	variablesArray *variables = (variablesArray *)calloc(sizeof(variablesArray), 1);
+	labelsArray *labels = (labelsArray *)calloc(sizeof(labelsArray), 1);
+	gboolean output = TRUE;
 
-	variables.lastAddress = LAST_RAM_ADDRESS;
-	output = variables_array_init(text, &variables);
-	if(output)
-		output = variables_array_set_addresses(&variables);
+	save_text_view_to_file_cb(widget, text);
+	if(!g_str_has_suffix(text->filename, ".asm")){
+		output_print("ERROR: Wrong filetype.", TRUE);
+		output = FALSE;
+	}
+
+	if(output){
+		variables->lastAddress = LAST_RAM_ADDRESS;
+		output = variables_array_init(text, variables);
+	}
 
 	if(output)
-		output = labels_array_init(text, &labels); 
+		output = variables_array_set_addresses(variables);
+
+	if(output)
+		output = variables_array_replace_to_file(text, variables);
+
+	if(output)
+		output = labels_array_init(text, labels); 
+
+	if(output)
+		output = label_array_conflict_check(variables, labels);
+
+	//luego calculoar las direcciones finales de los labels.
 
 	if(output){
 		variable_tree_view_clear();
 		int j;
-		for (j = 0; j < variables.variableCount; ++j){
-			variable_tree_view_append_row(variables.variableList[j]->str, variables.variableAddress[j], 0xA);	
+		for (j = 0; j < variables->variableCount; ++j){
+			variable_tree_view_append_row(variables->variableList[j]->str, variables->variableAddress[j], 0xA);	
 		}
 	}
 
-	variables_array_destroy(&variables);
+	labels_array_destroy(labels);
+	variables_array_destroy(variables);
 
 	if(!output)
 		output_print("Build failed.", TRUE);

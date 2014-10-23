@@ -136,6 +136,24 @@ gboolean glib_get_line_string(GString *line, const gchar *string, gsize *positio
 	return lineFound;
 }
 
+GString *glib_replace_word_from_string(GString *haystack,  const GString *needle, const GString *replacement)
+{
+	gchar *needlePosition = g_strstr_len(haystack->str, -1, needle->str);
+	gchar *initPosition = haystack->str;
+
+	while(needlePosition){
+		if(is_word(haystack->str, haystack->len, needlePosition, needle->len)){
+			g_string_erase(haystack, needlePosition - initPosition, needle->len);
+			g_string_insert_len(haystack, needlePosition - initPosition, replacement->str, replacement->len);
+			needlePosition = g_strstr_len(needlePosition + replacement->len, -1, needle->str);
+		}else{
+			needlePosition = g_strstr_len(needlePosition + needle->len, -1, needle->str);
+		}
+	}
+
+	return haystack;
+}
+
 int glib_hex_string_to_int(GString *string)
 {
 	int charValue = 0;
@@ -154,6 +172,35 @@ int glib_hex_string_to_int(GString *string)
 	return strtol(string->str, NULL, 0);
 }
 
+gboolean is_line_whitespace_before_newline(const gchar *line)
+{
+	int j;
+	for (j = 0; line[j] != '\n' && line[j] != '\0'; ++j){
+		if(!g_ascii_isspace(line[j]))
+			return FALSE;
+	}
 
+	return TRUE;
+}
+
+gboolean is_word(const gchar *string, gsize lengthString, const gchar *substring, gsize lengthSubstring)
+{
+	assert(substring >= string);
+	assert(substring < (string + lengthString));
+	int position = substring - string;
+	char character;
+
+	character = string[position + lengthSubstring];
+	if((g_ascii_isalpha(character) || character == '_' || (character & 0x80)))
+		return FALSE;
+
+	if(string != substring){
+		character = string[position - 1];
+		if((g_ascii_isalpha(character) || character == '_' || (character & 0x80)))
+			return FALSE;
+	}
+
+	return TRUE;
+}
 
 

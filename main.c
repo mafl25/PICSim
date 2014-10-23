@@ -42,7 +42,7 @@ int main(int argc, char *argv[])
 	outputText = gtk_builder_get_object(builder, "text_output");
 	set_output_text(GTK_TEXT_VIEW(outputText));
 
-	gchar *file_patterns[] = {"*.asm", "*.pic", "NULL"};
+	gchar *file_patterns[] = {"*.asm", "*.asmmed", "*.pic", "NULL"};
 	set_file_filter(file_patterns);
 
 	build_menubar(builder, &openText, GTK_WINDOW(window));

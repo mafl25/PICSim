@@ -37,5 +37,9 @@
 int get_word_string(char *string, char **word) ;
 gboolean glib_get_word_string(GString *word, const gchar *string, gsize *position);
 gboolean glib_get_line_string(GString *line, const gchar *string, gsize *position);
+GString *glib_replace_word_from_string(GString *haystack,  const GString *needle, const GString *replacement);
 
 int glib_hex_string_to_int(GString *string);
+
+gboolean is_line_whitespace_before_newline(const gchar *line);
+gboolean is_word(const gchar *string, gsize lengthString, const gchar *substring, gsize lengthSubstring);
