@@ -183,6 +183,16 @@ gboolean is_line_whitespace_before_newline(const gchar *line)
 	return TRUE;
 }
 
+gboolean is_line_empty(const gchar *line)
+{
+	int j;
+	for (j = 0; line[j] != '\0'; ++j){
+		if(!g_ascii_isspace(line[j]))
+			return FALSE;
+	}
+
+	return TRUE;
+}
 gboolean is_word(const gchar *string, gsize lengthString, const gchar *substring, gsize lengthSubstring)
 {
 	assert(substring >= string);

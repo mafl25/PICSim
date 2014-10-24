@@ -9,5 +9,6 @@
 #define ASM_OUT		"out"
 #define ORG			"org"
 #define END			"end"
+#define MAX_MEMORY	0x7FF
 
 #endif

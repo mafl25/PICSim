@@ -219,6 +219,7 @@ gboolean variables_array_replace_to_file(const textStruct *text, variablesArray 
 	GtkTextIter start;
 	GtkTextIter end;
 	GString *word = g_string_new(NULL);
+	GString *line = g_string_new(NULL);
 	GString *hexString = g_string_new(NULL);
 	gsize position = 0;
 	gchar *basename = g_filename_display_basename(text->filename);
@@ -230,28 +231,29 @@ gboolean variables_array_replace_to_file(const textStruct *text, variablesArray 
 	gtk_text_buffer_get_bounds(GTK_TEXT_BUFFER(text->programBuffer), &start, &end);
 	gchar *string = gtk_text_buffer_get_text(GTK_TEXT_BUFFER(text->programBuffer), &start, &end, TRUE);
 	while((strcmp(word->str, CODE)) && (glib_get_word_string(word, string, &position)));
-	while(string[position] != '\n' && string[position] != '\0')
-		position++;
-	position++;
-	GString *replacedString = g_string_new(&string[position]);
-	g_free(string);
 
 	fileWrite(&fWrite, medBasename->str, TRUE);
 
 	int j;
-	for (j = 0; j < variables->variableCount; ++j){
-		g_string_printf(hexString, "0X%X", variables->variableAddress[j]);
-		glib_replace_word_from_string(replacedString, variables->variableList[j], hexString);
-	}
 
-	fprintf(fWrite, "%s", replacedString->str);
+	while(glib_get_line_string(line, string, &position)){
+		for (j = 0; j < variables->variableCount; ++j){
+			g_string_printf(hexString, "0X%X", variables->variableAddress[j]);
+			glib_replace_word_from_string(line, variables->variableList[j], hexString);
+		}
+
+		if(!is_line_empty(line->str)){
+			fprintf(fWrite, "%s", line->str);
+		}
+	}
 
 	fileClose(&fWrite, medBasename->str, TRUE);
 
 	g_string_free(word, TRUE);
 	g_string_free(hexString, TRUE);
-	g_string_free(replacedString, TRUE);
+	g_string_free(line, TRUE);
 	g_string_free(medBasename, TRUE);
+	g_free(string);
 	g_free(basename);
 
 	return returnValue;
@@ -442,4 +444,114 @@ gboolean label_array_conflict_check(const variablesArray *variables, const label
 	}
 
 	return TRUE;
+}
+
+orgArray *org_array_new(void)
+{
+	orgArray *orgs = NULL;
+	orgs = calloc(sizeof(orgArray), 1);
+	return orgs;
+}
+
+gboolean org_array_init(const textStruct *text, orgArray *orgs)
+{
+	gboolean returnValue = FALSE;
+	
+	GString *filename = g_string_new(text->filename);
+	g_string_append(filename, ASM_MED);
+
+	off_t sizeOfFile = fileSize(filename->str);
+	if(sizeOfFile == -1){
+		output_print("ERROR: ", FALSE);
+		output_print(filename->str, FALSE);
+		output_print(" not found.", TRUE);
+		goto Exit_1;
+	}
+	GString *string = g_string_sized_new(sizeOfFile + 1);
+
+	FILE *fp;
+	fileOpen(&fp, filename->str, TRUE);
+
+	char character;
+	while((character = fgetc(fp)) != EOF)
+		g_string_append_c(string, character);
+
+	gsize firstPos = 0;
+	gsize secondPos = 0;
+	GString *word = g_string_new(NULL);
+	GString *line = g_string_new(NULL);
+	while(glib_get_line_string(line, string->str, &firstPos)){
+		if(g_ascii_isspace(line->str[0])){
+			glib_get_word_string(word, line->str, &secondPos);
+			if(!strcmp(ORG, word->str))
+				orgs->orgCount++;
+			secondPos = 0;	
+		}
+	}
+
+	if(orgs->orgCount > 0){
+		orgs->orgPos = (int *)calloc(orgs->orgCount, sizeof(int));
+		if (!orgs->orgPos){
+			output_print("ERROR: orgPos could not be initialized.", TRUE);
+			goto Exit_2;
+		}
+
+		orgs->orgDir = (int *)calloc(orgs->orgCount, sizeof(int));
+		if (!orgs->orgDir){
+			output_print("ERROR: orgDir could not be initialized.", TRUE);
+			goto Exit_2;
+		}
+
+		orgs->orgNop = (int *)calloc(orgs->orgCount, sizeof(int));
+		if (!orgs->orgNop){
+			output_print("ERROR: orgNop could not be initialized.", TRUE);
+			goto Exit_2;
+		}
+
+		int linePosition = 0;
+		int j = 0;
+		firstPos = 0;
+		secondPos = 0;
+		while(glib_get_line_string(line, string->str, &firstPos)){
+			if(g_ascii_isspace(line->str[0])){
+				glib_get_word_string(word, line->str, &secondPos);	
+				if(!strcmp(word->str, ORG)){
+					if(!glib_get_word_string(word, line->str, &secondPos)){
+						output_print("ERROR: No address after org.", TRUE);
+						goto Exit_2;
+					}
+
+					if((orgs->orgDir[j] = glib_hex_string_to_int(word)) > MAX_MEMORY){
+						output_print("ERROR: org address exceeds the maximun amount of memory: ", FALSE);
+						output_print(line->str, TRUE);
+						goto Exit_2;
+					}
+
+					if(orgs->orgDir[j] == EOF){
+						output_print("ERROR: Address was written incorrectly: ", FALSE);
+						output_print(line->str, TRUE);
+						goto Exit_2;
+					}
+					
+					orgs->orgPos[j] = linePosition;
+					j++;
+				}
+			}
+			linePosition++;
+			secondPos = 0;
+		}
+
+	}
+
+	returnValue = TRUE;
+
+Exit_2:
+	fileClose(&fp, filename->str, TRUE);
+	g_string_free(word, TRUE);
+	g_string_free(line, TRUE);
+	g_string_free(string, TRUE);
+Exit_1:
+	g_string_free(filename, TRUE);
+
+	return returnValue;
 }

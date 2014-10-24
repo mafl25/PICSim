@@ -35,6 +35,14 @@ typedef struct
 	int labelCount;
 }labelsArray;
 
+typedef struct
+{
+	int *orgPos;
+	int *orgNop;
+	int *orgDir;
+	int orgCount;
+}orgArray;
+
 void text_struct_init(textStruct *text, GtkBuilder *builder);
 void text_struct_destroy(textStruct *text);
 
@@ -49,5 +57,8 @@ gboolean labels_array_init(const textStruct *text, labelsArray *labels);
 gboolean labels_array_destroy(labelsArray *labels);
 
 gboolean label_array_conflict_check(const variablesArray *variables, const labelsArray *labels);
+
+orgArray *org_array_new(void);
+gboolean org_array_init(const textStruct *text, orgArray *orgs);
 
 #endif

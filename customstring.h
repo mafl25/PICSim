@@ -42,4 +42,5 @@ GString *glib_replace_word_from_string(GString *haystack,  const GString *needle
 int glib_hex_string_to_int(GString *string);
 
 gboolean is_line_whitespace_before_newline(const gchar *line);
+gboolean is_line_empty(const gchar *line);
 gboolean is_word(const gchar *string, gsize lengthString, const gchar *substring, gsize lengthSubstring);

@@ -214,6 +214,7 @@ gboolean build_program_cb(GtkWidget *widget, gpointer data)
 	textStruct *text = (textStruct *)data;
 	variablesArray *variables = variables_array_new();
 	labelsArray *labels = labels_array_new();
+	orgArray *orgs = org_array_new();
 	gboolean output = TRUE;
 
 	save_text_view_to_file_cb(widget, text);
@@ -242,6 +243,9 @@ gboolean build_program_cb(GtkWidget *widget, gpointer data)
 
 	if(output)
 		output = label_array_conflict_check(variables, labels);
+
+	if(output)
+		output = org_array_init(text, orgs);
 
 	//luego calculoar las direcciones finales de los labels.
 
