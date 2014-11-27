@@ -34,6 +34,24 @@
  * =====================================================================================
  */
 
+typedef struct
+{
+	GString *line;
+	guint originalPosition;
+	guint currentPosition;
+}MLine;
+
+typedef struct
+{
+	MLine **lineStack;
+	guint numberOfLines;
+	guint allocatedLines;
+	guint currentLine;
+}MLineStack;
+
+void mlinestack_delete_line(MLineStack, guint position);
+MLineStack *mlinestack_new(gchar *text);
+
 int get_word_string(char *string, char **word) ;
 gboolean glib_get_word_string(GString *word, const gchar *string, gsize *position);
 gboolean glib_get_line_string(GString *line, const gchar *string, gsize *position);

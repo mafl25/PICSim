@@ -404,7 +404,7 @@ gboolean labels_array_destroy(labelsArray *labels)
 	return TRUE;
 }
 
-gboolean label_array_conflict_check(const variablesArray *variables, const labelsArray *labels)
+gboolean label_variable_array_conflict_check(const variablesArray *variables, const labelsArray *labels)
 {
 	int j;
 	int i;
@@ -555,3 +555,58 @@ Exit_1:
 
 	return returnValue;
 }
+
+gboolean org_array_destroy(orgArray *orgs)
+{
+	g_free(orgs->orgDir);
+	g_free(orgs->orgNop);
+	g_free(orgs->orgPos);
+
+	return TRUE;
+}
+
+gboolean labels_org_replace_to_file(const textStruct *text, const labelsArray *labels, orgArray *orgs)
+{
+	gboolean returnValue = FALSE;
+	int j;
+	int i;
+	int previousLabels = 0;
+	int totalNops = 0;
+	GString *errorMessage = g_string_new(NULL);
+
+	for (j = 0; j < orgs->orgCount; ++j){
+		for (i = 0; i < labels->labelCount; ++i){
+			if(orgs->orgPos[j] > labels->labelPos[i])
+				previousLabels++;
+		}
+
+		orgs->orgNop[j] = orgs->orgDir[j] - orgs->orgPos[j] + j + previousLabels - totalNops;
+		if(orgs->orgNop[j] < 0){
+			g_string_printf(errorMessage, "ERROR: org pointing to place where instructions had already been written: 0x%X",
+					orgs->orgDir[j]);	
+			output_print(errorMessage->str, TRUE);
+			goto Exit_1;
+		}
+
+		totalNops += orgs->orgNop[j];
+		previousLabels = 0;
+	}
+
+	//Hay problemas por que org position y labels position no obtienen sus posiciones del mismo texto.
+	//Creo que se debe hacer algo de manera muy distinta: los primero en hacer sería cargar todo el texto a un string?
+	//o un buffer, e ir modificando ese buffer. El primer paso sería limpiar el buffer de comentarios y 
+	//espacios en blanco innecesarios. O tal vez no. Lo que importa es que se necsita cambair bastante el programa.
+
+	returnValue = TRUE;
+Exit_1:
+	g_string_free(errorMessage, TRUE);
+	return returnValue;
+} 
+
+
+
+
+
+
+
+

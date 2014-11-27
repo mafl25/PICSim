@@ -242,12 +242,13 @@ gboolean build_program_cb(GtkWidget *widget, gpointer data)
 		output = labels_array_init(text, labels); 
 
 	if(output)
-		output = label_array_conflict_check(variables, labels);
+		output = label_variable_array_conflict_check(variables, labels);
 
 	if(output)
 		output = org_array_init(text, orgs);
 
-	//luego calculoar las direcciones finales de los labels.
+	if(output)
+		output = labels_org_replace_to_file(text, labels, orgs);
 
 	if(output){
 		variable_tree_view_clear();
@@ -257,6 +258,7 @@ gboolean build_program_cb(GtkWidget *widget, gpointer data)
 		}
 	}
 
+	org_array_destroy(orgs);
 	labels_array_destroy(labels);
 	variables_array_destroy(variables);
 

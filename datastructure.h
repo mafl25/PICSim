@@ -18,6 +18,7 @@ typedef struct
 	gulong programChangedHandlerId;
 }textStruct;
 
+
 typedef struct
 {
 	GString **variableList;
@@ -56,9 +57,12 @@ labelsArray *labels_array_new(void);
 gboolean labels_array_init(const textStruct *text, labelsArray *labels);
 gboolean labels_array_destroy(labelsArray *labels);
 
-gboolean label_array_conflict_check(const variablesArray *variables, const labelsArray *labels);
+gboolean label_variable_array_conflict_check(const variablesArray *variables, const labelsArray *labels);
 
 orgArray *org_array_new(void);
 gboolean org_array_init(const textStruct *text, orgArray *orgs);
+gboolean org_array_destroy(orgArray *orgs);
+
+gboolean labels_org_replace_to_file(const textStruct *text, const labelsArray *labels, orgArray *orgs);
 
 #endif
