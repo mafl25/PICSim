@@ -53,6 +53,7 @@ typedef enum {
 
 static settingsWidgets sWidgets[WIDGET_NUMBER];
 static GtkWrapMode textWrapMode;
+static GString *directory = NULL;
 
 static void toggle_button_init(GtkWidget *widget, const gchar *property)
 {
@@ -183,12 +184,30 @@ void build_settings(GtkBuilder *builder, textStruct *text)
 	g_signal_connect(settings_buttons, "clicked", G_CALLBACK(default_settings_cb), NULL);
 }
 
-int set_settings(void)
+int set_settings(char *dir)
 {
 	FILE *settingsFile;
 
-	if(!fileOpen(&settingsFile, FILE_SETTINGS, FALSE)){
-		fileWrite(&settingsFile, FILE_SETTINGS, TRUE);
+	if (dir) {
+		if (!directory) {
+			directory = g_string_new(dir);
+		} else {
+			g_string_free(directory, TRUE);
+			directory = g_string_new(dir);
+		}
+		
+		size_t j;
+		for (j = directory->len; j ; --j) {
+			if (directory->str[j] == '/' || directory->str[j] == '\\')
+				break;
+		}
+
+		g_string_truncate(directory, j + 1);
+		g_string_append(directory, FILE_SETTINGS);
+	}
+
+	if (!fileOpen(&settingsFile, directory->str, FALSE)) {
+		fileWrite(&settingsFile, directory->str, TRUE);
 
 		fprintf(settingsFile, "%s %s\n", sWidgets[LINE_NUMBER].name, P_FALSE);
 		fprintf(settingsFile, "%s %s\n", sWidgets[RIGHT_MARGIN].name, P_FALSE);
@@ -202,11 +221,11 @@ int set_settings(void)
 		fprintf(settingsFile, "%s %s\n", sWidgets[AUTO_INDENT].name, P_FALSE);
 
 		output_print("Creating new \"", FALSE);
-		output_print(FILE_SETTINGS, FALSE);
+		output_print(directory->str, FALSE);
 		output_print("\" file.", TRUE);
 
-		fileClose(&settingsFile, FILE_SETTINGS, TRUE);
-		if(!fileOpen(&settingsFile, FILE_SETTINGS, TRUE))
+		fileClose(&settingsFile, directory->str, TRUE);
+		if(!fileOpen(&settingsFile, directory->str, TRUE))
 			return -1;
 	}
 
@@ -217,7 +236,7 @@ int set_settings(void)
 	int bufferPositionHistory = 0;
 	int j;
 
-	off_t byteCount = fileSize(FILE_SETTINGS);
+	off_t byteCount = fileSize(directory->str);
 	buffer = calloc(1, byteCount + 1);
 	
 	for (j = 0; j < byteCount; ++j)
@@ -228,10 +247,10 @@ int set_settings(void)
 		
 		for (j = 0; j < WIDGET_NUMBER; ++j)
 		{
-			if(strcmp((const char *)name, sWidgets[j].name) == 0){
+			if(strcmp(name, sWidgets[j].name) == 0){
 				if((bufferPosition = get_word_string(&buffer[bufferPositionHistory], &property)) > 0){
 					bufferPositionHistory += bufferPosition;
-					sWidgets[j].property_change(sWidgets[j].widget, (const gchar *)property);
+					sWidgets[j].property_change(sWidgets[j].widget, property);
 					g_free(property);
 					break;
 				}
@@ -241,8 +260,14 @@ int set_settings(void)
 	}
 	g_free(buffer);
 
-	fileClose(&settingsFile, FILE_SETTINGS, TRUE);
+	fileClose(&settingsFile, directory->str, TRUE);
 	return 0;
+}
+
+void free_setting(void)
+{
+	g_string_free(directory, TRUE);
+	directory = NULL;
 }
 
 //-------------------------------------------------------------------------------------------------------
@@ -254,23 +279,23 @@ gboolean store_settings_cb(GtkWidget *widget, gpointer data)
 	FILE *settingsFile;
 	int j;
 
-	if(!fileWrite(&settingsFile, FILE_SETTINGS, TRUE))
+	if(!fileWrite(&settingsFile, directory->str, TRUE))
 		return FALSE;
 
 	for (j = 0; j < WIDGET_NUMBER; ++j)
 		fprintf(settingsFile, "%s %s\n", sWidgets[j].name, sWidgets[j].get_property(sWidgets[j].widget));
 
-	fileClose(&settingsFile, FILE_SETTINGS, TRUE);
+	fileClose(&settingsFile, directory->str, TRUE);
 
 	return TRUE;
 }
 
 gboolean default_settings_cb(GtkWidget *widget, gpointer data)
 {
-	if(remove(FILE_SETTINGS) == -1)
+	if(remove(directory->str) == -1)
 		return FALSE;
 
-	set_settings();
+	set_settings(NULL);
 
 	return TRUE;
 }

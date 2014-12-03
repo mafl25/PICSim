@@ -21,7 +21,8 @@ gboolean space_tab_change_cb(GtkWidget *widget, gpointer data);
 gboolean auto_indent_change_cb(GtkWidget *widget, gpointer data);
 
 void build_settings(GtkBuilder *builder, textStruct *text);
-int set_settings(void);
+int set_settings(char *directory);
+void free_setting(void);
 
 #endif
 

@@ -14,7 +14,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 #include <errno.h>
+
+GString *get_dir_app(char *);
 
 int main(int argc, char *argv[])
 {
@@ -26,8 +29,11 @@ int main(int argc, char *argv[])
 
 	gtk_init(&argc, &argv);
 
-	builder = gtk_builder_new();
-	gtk_builder_add_from_file(builder, "project_gui.ui", NULL);
+	char *ui_dir = "project_gui.ui";
+	GString *buf = get_dir_app(argv[0]);
+	g_string_append(buf, ui_dir);
+	builder = gtk_builder_new_from_file(buf->str);
+	g_string_free(buf, TRUE);
 
 	window = gtk_builder_get_object(builder, "window1");
 	gtk_window_maximize(GTK_WINDOW(window));
@@ -48,7 +54,7 @@ int main(int argc, char *argv[])
 	build_menubar(builder, &openText, GTK_WINDOW(window));
 	build_toolbar(builder, &openText, GTK_WINDOW(window));
 	build_settings(builder, &openText);
-	set_settings();
+	set_settings(argv[0]);
 
 	openText.programChangedHandlerId = g_signal_connect(openText.programBuffer, "changed", 
 			G_CALLBACK(program_changed_cd), (gpointer)&openText);
@@ -65,9 +71,23 @@ int main(int argc, char *argv[])
 	destroy_output_buffer();
 	destroy_output_text();
 	text_struct_destroy(&openText);
+	free_setting();
 
 	return 0;
 }
 
+GString *get_dir_app(char *directory)
+{
+	GString *buf = g_string_sized_new(100);
+	g_string_append(buf, directory);
+	
+	size_t j;
+	for (j = buf->len; j ; --j) {
+		if (buf->str[j] == '/' || buf->str[j] == '\\')
+			break;
+	}
 
+	g_string_truncate(buf, j + 1);
 
+	return buf;
+}
