@@ -4,8 +4,6 @@
 #include <gtk/gtk.h>
 #include "vstring.h"
 
-#define LAST_RAM_ADDRESS 0x0A
-
 typedef struct
 {
 	FILE *file;
@@ -44,7 +42,7 @@ typedef struct
 void text_struct_init(textStruct *text, GtkBuilder *builder);
 void text_struct_destroy(textStruct *text);
 
-void delete_empty_lines(struct VString *text);
+void delete_empty_lines(struct VString *text);//at some moment, add to VString
 
 variablesArray *variables_array_new(void);
 gboolean variables_array_destroy(variablesArray *variables);
@@ -61,11 +59,5 @@ orgArray *org_array_new(void);
 gboolean org_array_init(struct VString *program, orgArray *orgs);
 gboolean org_array_destroy(orgArray *orgs);
 gboolean labels_org_replace(struct VString *program, const labelsArray *labels, orgArray *orgs);
-/*gboolean variables_array_replace_to_file(const textStruct *text, variablesArray *variables);
 
-
-
-
-gboolean labels_org_replace_to_file(const textStruct *text, const labelsArray *labels, orgArray *orgs);
-*/
 #endif

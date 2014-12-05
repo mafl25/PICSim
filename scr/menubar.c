@@ -263,10 +263,7 @@ gboolean build_program_cb(GtkWidget *widget, gpointer data)
 		output = labels_org_replace(program, labels, orgs);
 
 	output_print_string(program, true);
-/*
-	if(output)
-		output = labels_org_replace_to_file(text, labels, orgs);
-*/
+
 	if(output){
 		variable_tree_view_clear();
 		int j;
@@ -280,8 +277,8 @@ gboolean build_program_cb(GtkWidget *widget, gpointer data)
 			free(varName);
 		}
 	}
-/*
-	org_array_destroy(orgs);*/
+
+	org_array_destroy(orgs);
 	labels_array_destroy(labels);
 	variables_array_destroy(variables);
 	delete(program);
