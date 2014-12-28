@@ -19,6 +19,7 @@ gboolean undo_text_cb(GtkWidget *widget, gpointer data);
 gboolean redo_text_cb(GtkWidget *widget, gpointer data);
 
 gboolean build_program_cb(GtkWidget *widget, gpointer data);
+gboolean step_program_cb(GtkWidget *widget, gpointer data);
 
 void build_menubar(GtkBuilder *builder, textStruct *text, GtkWindow *window);
 

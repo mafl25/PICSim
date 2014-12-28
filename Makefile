@@ -2,7 +2,8 @@ CC = gcc
 
 SCR_DIR = scr/
 SCR = main.c outputbuffer.c filedialog.c filemanager.c commoncallbacks.c \
-	  settings.c customstring.c datastructure.c menubar.c toolbar.c variabletreeview.c
+	  settings.c customstring.c datastructure.c menubar.c toolbar.c variabletreeview.c \
+	  instructionset.c regAndMem.c procesor.c programtreeview.c
 
 VECTOR_DIR = best/scr/
 VECTOR_SCR = vstring.c class.c vector.c 

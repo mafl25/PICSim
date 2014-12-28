@@ -15,9 +15,10 @@
 static struct Instruction instructionSetPIC[AMOUNT_INST];//falta
 const struct Instruction *InstructionSet = instructionSetPIC;
 
-BitField prepareBitField(const struct VString *operandString, struct Instruction *set)
+BitField prepareBitField(const struct VString *operandString, const struct Instruction *set)
 {
 	BitField result = 0;
+	bool error = false;
 	int hexResult = 0;
 	struct VString *hexWord = new(VString, NULL, 6);
 
@@ -31,8 +32,9 @@ BitField prepareBitField(const struct VString *operandString, struct Instruction
 			if (!find_in_vector(operandString, 0, separator, lenSep, &position)) {
 				output_print("ERROR: Operand of ", FALSE);
 				output_print_string(set->mnemonic, FALSE);
-				output_print(" is incorrect:", FALSE);
+				output_print(" is incorrect: ", FALSE);
 				output_print_string(operandString, TRUE);
+				error = true;
 				goto Exit_1;
 			}
 
@@ -41,21 +43,23 @@ BitField prepareBitField(const struct VString *operandString, struct Instruction
 			if (hexResult == -1) {
 				output_print("ERROR: Operand of ", FALSE);
 				output_print_string(set->mnemonic, FALSE);
-				output_print(" is not a hexadecimal number:", FALSE);
+				output_print(" is not a hexadecimal number: ", FALSE);
 				output_print_string(operandString, TRUE);
+				error = true;
 				goto Exit_1;
 			}
 
 			if (hexResult > FILE_MASK) {
 				output_print("WARNING: Operand of ", FALSE);
 				output_print_string(set->mnemonic, FALSE);
-				output_print("is out of range, using lower least significant bits: ", FALSE);
+				output_print(" is out of range, using lower least significant bits: ", FALSE);
 				output_print_string(operandString, TRUE);
 			}
 
 			result = hexResult & FILE_MASK;
 
 			position++;
+			erase_at(hexWord, 0, get_char_number(hexWord));
 			insert_vector_at(hexWord, 0, operandString, position, get_char_number(operandString) - position);
 			hexResult = string_to_hex(hexWord);
 			if (hexResult == -1) {
@@ -63,12 +67,13 @@ BitField prepareBitField(const struct VString *operandString, struct Instruction
 				output_print_string(set->mnemonic, FALSE);
 				output_print(" is not a hexadecimal number:", FALSE);
 				output_print_string(operandString, TRUE);
+				error = true;
 				goto Exit_1;
 			}
 			if (hexResult != 0 && hexResult != 1) {
 				output_print("WARNING: Operand of ", FALSE);
 				output_print_string(set->mnemonic, FALSE);
-				output_print("must be 1 or 0, using lower least significant bits: ", FALSE);
+				output_print(" must be 1 or 0, using lower least significant bits: ", FALSE);
 				output_print_string(operandString, TRUE);
 			}
 			result = (hexResult & 0x01) ? (result | 0x80) : result;
@@ -81,6 +86,7 @@ BitField prepareBitField(const struct VString *operandString, struct Instruction
 				output_print_string(set->mnemonic, FALSE);
 				output_print(" is incorrect:", FALSE);
 				output_print_string(operandString, TRUE);
+				error = true;
 				goto Exit_1;
 			}
 
@@ -91,19 +97,21 @@ BitField prepareBitField(const struct VString *operandString, struct Instruction
 				output_print_string(set->mnemonic, FALSE);
 				output_print(" is not a hexadecimal number:", FALSE);
 				output_print_string(operandString, TRUE);
+				error = true;
 				goto Exit_1;
 			}
 
 			if (hexResult > FILE_MASK) {
 				output_print("WARNING: Operand of ", FALSE);
 				output_print_string(set->mnemonic, FALSE);
-				output_print("is out of range, using lower least significant bits: ", FALSE);
+				output_print(" is out of range, using lower least significant bits: ", FALSE);
 				output_print_string(operandString, TRUE);
 			}
 
 			result = hexResult & FILE_MASK;
 
 			position++;
+			erase_at(hexWord, 0, get_char_number(hexWord));
 			insert_vector_at(hexWord, 0, operandString, position, get_char_number(operandString) - position);
 			hexResult = string_to_hex(hexWord);
 			if (hexResult == -1) {
@@ -111,12 +119,13 @@ BitField prepareBitField(const struct VString *operandString, struct Instruction
 				output_print_string(set->mnemonic, FALSE);
 				output_print(" is not a hexadecimal number:", FALSE);
 				output_print_string(operandString, TRUE);
+				error = true;
 				goto Exit_1;
 			}
 			if (hexResult > BIT_MASK) {
 				output_print("WARNING: Operand of ", FALSE);
 				output_print_string(set->mnemonic, FALSE);
-				output_print("must be between 0 and 7, using lower least significant bits: ", FALSE);
+				output_print(" must be between 0 and 7, using lower least significant bits: ", FALSE);
 				output_print_string(operandString, TRUE);
 			}
 			result = result | ((hexResult & 0x07) << 7);
@@ -130,13 +139,14 @@ BitField prepareBitField(const struct VString *operandString, struct Instruction
 				output_print_string(set->mnemonic, FALSE);
 				output_print(" is not a hexadecimal number:", FALSE);
 				output_print_string(operandString, TRUE);
+				error = true;
 				goto Exit_1;
 			}
 
 			if (hexResult > FILE_MASK) {
 				output_print("WARNING: Operand of ", FALSE);
 				output_print_string(set->mnemonic, FALSE);
-				output_print("is out of range, using lower least significant bits: ", FALSE);
+				output_print(" is out of range, using lower least significant bits: ", FALSE);
 				output_print_string(operandString, TRUE);
 			}
 			result = hexResult & FILE_MASK;
@@ -150,13 +160,14 @@ BitField prepareBitField(const struct VString *operandString, struct Instruction
 				output_print_string(set->mnemonic, FALSE);
 				output_print(" is not a hexadecimal number:", FALSE);
 				output_print_string(operandString, TRUE);
+				error = true;
 				goto Exit_1;
 			}
 
 			if (hexResult > K_DIR_MASK) {
 				output_print("WARNING: Operand of ", FALSE);
 				output_print_string(set->mnemonic, FALSE);
-				output_print("is out of range, using lower least significant bits: ", FALSE);
+				output_print(" is out of range, using lower least significant bits: ", FALSE);
 				output_print_string(operandString, TRUE);
 			}
 			result = hexResult & K_DIR_MASK;
@@ -170,13 +181,14 @@ BitField prepareBitField(const struct VString *operandString, struct Instruction
 				output_print_string(set->mnemonic, FALSE);
 				output_print(" is not a hexadecimal number:", FALSE);
 				output_print_string(operandString, TRUE);
+				error = true;
 				goto Exit_1;
 			}
 
 			if (hexResult > BYTE_MASK) {
 				output_print("WARNING: Operand of ", FALSE);
 				output_print_string(set->mnemonic, FALSE);
-				output_print("is out of range, using lower least significant bits: ", FALSE);
+				output_print(" is out of range, using lower least significant bits: ", FALSE);
 				output_print_string(operandString, TRUE);
 			}
 			result = hexResult & BYTE_MASK;
@@ -196,163 +208,165 @@ BitField prepareBitField(const struct VString *operandString, struct Instruction
 Exit_1:
 	delete(hexWord);
 
-	return result;
+	return (error) ? -1 : result;
 }
 
-void setIntructionSet()
+void setInstructionSet()
 {
+	int64_t negative = -1;
+
 	//movlw
-	instructionSetPIC[0].mnemonic = new(VString, "movlw", -1);
+	instructionSetPIC[0].mnemonic = new(VString, "movlw", negative);
 	instructionSetPIC[0].operand = K_LIT;
 	instructionSetPIC[0].instrucFunc = &movlwFun;
 
 	//addlw
-	instructionSetPIC[1].mnemonic = new(VString, "addlw", -1);
+	instructionSetPIC[1].mnemonic = new(VString, "addlw", negative);
 	instructionSetPIC[1].operand = K_LIT;
 	instructionSetPIC[1].instrucFunc = &addlwFun;
 
 	//movwf
-	instructionSetPIC[2].mnemonic = new(VString, "movwf", -1);
+	instructionSetPIC[2].mnemonic = new(VString, "movwf", negative);
 	instructionSetPIC[2].operand = FILE_REG;
 	instructionSetPIC[2].instrucFunc = &movwfFun;
 	
 	//clrf
-	instructionSetPIC[3].mnemonic = new(VString, "clrf", -1);
+	instructionSetPIC[3].mnemonic = new(VString, "clrf", negative);
 	instructionSetPIC[3].operand = FILE_REG;
 	instructionSetPIC[3].instrucFunc = &clrfFun;
 
 	//andlw
-	instructionSetPIC[4].mnemonic = new(VString, "andlw", -1);
+	instructionSetPIC[4].mnemonic = new(VString, "andlw", negative);
 	instructionSetPIC[4].operand = K_LIT;
 	instructionSetPIC[4].instrucFunc = &andlwFun;
 	
 	//addwf
-	instructionSetPIC[5].mnemonic = new(VString, "addwf", -1);
+	instructionSetPIC[5].mnemonic = new(VString, "addwf", negative);
 	instructionSetPIC[5].operand = FILE_D;
 	instructionSetPIC[5].instrucFunc = &addwfFun;
 	
 	//andwf
-	instructionSetPIC[6].mnemonic = new(VString, "andwf", -1);
+	instructionSetPIC[6].mnemonic = new(VString, "andwf", negative);
 	instructionSetPIC[6].operand = FILE_D;
 	instructionSetPIC[6].instrucFunc = &andwfFun;
 	
 	//bcf
-	instructionSetPIC[7].mnemonic = new(VString, "bcf", -1);
+	instructionSetPIC[7].mnemonic = new(VString, "bcf", negative);
 	instructionSetPIC[7].operand = FILE_B;
 	instructionSetPIC[7].instrucFunc = &bcfFun;
 	
 	//bsf
-	instructionSetPIC[8].mnemonic = new(VString, "bsf", -1);
+	instructionSetPIC[8].mnemonic = new(VString, "bsf", negative);
 	instructionSetPIC[8].operand = FILE_B;
 	instructionSetPIC[8].instrucFunc = &bsfFun;
 	
 	//comf
-	instructionSetPIC[9].mnemonic = new(VString, "comf", -1);
+	instructionSetPIC[9].mnemonic = new(VString, "comf", negative);
 	instructionSetPIC[9].operand = FILE_D;
 	instructionSetPIC[9].instrucFunc = &comfFun;
 	
 	//decf
-	instructionSetPIC[10].mnemonic = new(VString, "decf", -1);
+	instructionSetPIC[10].mnemonic = new(VString, "decf", negative);
 	instructionSetPIC[10].operand = FILE_D;
 	instructionSetPIC[10].instrucFunc = &decfFun;
 	
 	//incf
-	instructionSetPIC[11].mnemonic = new(VString, "incf", -1);
+	instructionSetPIC[11].mnemonic = new(VString, "incf", negative);
 	instructionSetPIC[11].operand = FILE_D;
 	instructionSetPIC[11].instrucFunc = &incfFun;
 	
 	//iorlw
-	instructionSetPIC[12].mnemonic = new(VString, "iorlw", -1);
+	instructionSetPIC[12].mnemonic = new(VString, "iorlw", negative);
 	instructionSetPIC[12].operand = K_LIT;
 	instructionSetPIC[12].instrucFunc = &iorlwFun;
 	
 	//iorwf
-	instructionSetPIC[13].mnemonic = new(VString, "iorwf", -1);
+	instructionSetPIC[13].mnemonic = new(VString, "iorwf", negative);
 	instructionSetPIC[13].operand = FILE_D;
 	instructionSetPIC[13].instrucFunc = &iorwfFun;
 	
 	//rlf
-	instructionSetPIC[14].mnemonic = new(VString, "rlf", -1);
+	instructionSetPIC[14].mnemonic = new(VString, "rlf", negative);
 	instructionSetPIC[14].operand = FILE_D;
 	instructionSetPIC[14].instrucFunc = &rlfFun;
 	
 	//rrf
-	instructionSetPIC[15].mnemonic = new(VString, "rrf", -1);
+	instructionSetPIC[15].mnemonic = new(VString, "rrf", negative);
 	instructionSetPIC[15].operand = FILE_D;
 	instructionSetPIC[15].instrucFunc = &rrfFun;
 	
 	//sublw
-	instructionSetPIC[16].mnemonic = new(VString, "sublw", -1);
+	instructionSetPIC[16].mnemonic = new(VString, "sublw", negative);
 	instructionSetPIC[16].operand = K_LIT;
 	instructionSetPIC[16].instrucFunc = &sublwFun;
 	
 	//subwf
-	instructionSetPIC[17].mnemonic = new(VString, "subwf", -1);
+	instructionSetPIC[17].mnemonic = new(VString, "subwf", negative);
 	instructionSetPIC[17].operand = FILE_D;
 	instructionSetPIC[17].instrucFunc = &subwfFun;
 	
 	//swapf
-	instructionSetPIC[18].mnemonic = new(VString, "swapf", -1);
+	instructionSetPIC[18].mnemonic = new(VString, "swapf", negative);
 	instructionSetPIC[18].operand = FILE_D;
 	instructionSetPIC[18].instrucFunc = &swapfFun;
 	
 	//xowlw
-	instructionSetPIC[19].mnemonic = new(VString, "xowlw", -1);
+	instructionSetPIC[19].mnemonic = new(VString, "xowlw", negative);
 	instructionSetPIC[19].operand = K_LIT;
 	instructionSetPIC[19].instrucFunc = &xorlwFun;
 	
 	//xorwf
-	instructionSetPIC[20].mnemonic = new(VString, "xorwf", -1);
+	instructionSetPIC[20].mnemonic = new(VString, "xorwf", negative);
 	instructionSetPIC[20].operand = FILE_D;
 	instructionSetPIC[20].instrucFunc = &xorwfFun;
 	
 	//movf
-	instructionSetPIC[21].mnemonic = new(VString, "movf", -1);
+	instructionSetPIC[21].mnemonic = new(VString, "movf", negative);
 	instructionSetPIC[21].operand = FILE_D;
 	instructionSetPIC[21].instrucFunc = &movfFun;
 	
 	//goto
-	instructionSetPIC[22].mnemonic = new(VString, "goto", -1);
+	instructionSetPIC[22].mnemonic = new(VString, "goto", negative);
 	instructionSetPIC[22].operand = K_DIR;
 	instructionSetPIC[22].instrucFunc = &gotoFun;
 	
 	//nop
-	instructionSetPIC[23].mnemonic = new(VString, "nop", -1);
+	instructionSetPIC[23].mnemonic = new(VString, "nop", negative);
 	instructionSetPIC[23].operand = EMPTY;
 	instructionSetPIC[23].instrucFunc = &nopFun;
 	
 	//clrw
-	instructionSetPIC[24].mnemonic = new(VString, "clrw", -1);
+	instructionSetPIC[24].mnemonic = new(VString, "clrw", negative);
 	instructionSetPIC[24].operand = EMPTY;
 	instructionSetPIC[24].instrucFunc = &clrwFun;
 	
 	//decfsz
-	instructionSetPIC[25].mnemonic = new(VString, "decfsz", -1);
+	instructionSetPIC[25].mnemonic = new(VString, "decfsz", negative);
 	instructionSetPIC[25].operand = FILE_D;
 	instructionSetPIC[25].instrucFunc = &decfszFun;
 	
 	//incfsz
-	instructionSetPIC[26].mnemonic = new(VString, "incfsz", -1);
+	instructionSetPIC[26].mnemonic = new(VString, "incfsz", negative);
 	instructionSetPIC[26].operand = FILE_D;
 	instructionSetPIC[26].instrucFunc = &incfszFun;
 	
 	//btfsc
-	instructionSetPIC[27].mnemonic = new(VString, "btfsc", -1);
+	instructionSetPIC[27].mnemonic = new(VString, "btfsc", negative);
 	instructionSetPIC[27].operand = FILE_B;
 	instructionSetPIC[27].instrucFunc = &btfscFun;
 	
 	//btfss
-	instructionSetPIC[28].mnemonic = new(VString, "btfss", -1);
+	instructionSetPIC[28].mnemonic = new(VString, "btfss", negative);
 	instructionSetPIC[28].operand = FILE_B;
 	instructionSetPIC[28].instrucFunc = &btfssFun;
 	
 	//call	
-	instructionSetPIC[29].mnemonic = new(VString, "call", -1);
+	instructionSetPIC[29].mnemonic = new(VString, "call", negative);
 	instructionSetPIC[29].operand = K_DIR;
 	instructionSetPIC[29].instrucFunc = &callFun;
 	
 	//return
-	instructionSetPIC[30].mnemonic = new(VString, "return", -1);
+	instructionSetPIC[30].mnemonic = new(VString, "return", negative);
 	instructionSetPIC[30].operand = EMPTY;
 	instructionSetPIC[30].instrucFunc = &returnFun;
 }
@@ -611,7 +625,7 @@ void decfszFun(BitField operandNum)
 	uint8_t dataFile = getDataMemory(file);
 	static bool called;
 
-	if(called == false){
+	if(called == false){ //wtf, need to fix this, called shlound be set to zero if the result was zero
 		dataFile--;
 		if(dataFile == 0)
 			setPC(getPC() + 2);

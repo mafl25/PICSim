@@ -4,7 +4,8 @@
 #include <stdint.h>
 #include "vstring.h"
 
-#define AMOUNT_INST 33
+#define AMOUNT_INST 31
+#define NOP_POS 23
 
 //-----DATA---------------------------------------------------------------------------------------------
 
@@ -13,7 +14,7 @@ enum operandType {FILE_D, FILE_REG, FILE_B, K_DIR, K_LIT, EMPTY};
 typedef enum operandType OperandType;
 
 //What will be passed on to each insctruction function.
-typedef uint16_t BitField;
+typedef int16_t BitField;
 
 //Struct defining each instruction, showing what its called, 
 //a pointer to the function and the operand type
@@ -28,8 +29,8 @@ extern const struct Instruction *InstructionSet;
 
 //-----FUNCTIONS----------------------------------------------------------------------------------------
 
-BitField prepareBitField(const struct VString* operandString, struct Instruction *set);
-void setIntructionSet(void);
+BitField prepareBitField(const struct VString* operandString, const struct Instruction *set);
+void setInstructionSet(void);
 
 //Funciones de instrucciones
 void movlwFun(BitField operandNum);

@@ -39,4 +39,7 @@ void build_toolbar(GtkBuilder *builder, textStruct *text, GtkWindow *window)
 
 	toolbar_button = gtk_builder_get_object(builder, "build_button");
 	g_signal_connect(toolbar_button, "clicked", G_CALLBACK(build_program_cb), (gpointer)(text));
+
+	toolbar_button = gtk_builder_get_object(builder, "next_button");
+	g_signal_connect(toolbar_button, "clicked", G_CALLBACK(step_program_cb), (gpointer)(text));
 }

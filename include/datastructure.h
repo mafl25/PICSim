@@ -3,6 +3,7 @@
 
 #include <gtk/gtk.h>
 #include "vstring.h"
+#include "procesor.h"
 
 typedef struct
 {
@@ -14,6 +15,8 @@ typedef struct
 	GObject *label;
 	gboolean isSaved;
 	gulong programChangedHandlerId;
+	struct programData *programMemory;
+	gboolean programBuilt;
 }textStruct;
 
 

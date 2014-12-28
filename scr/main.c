@@ -7,6 +7,8 @@
 #include "commoncallbacks.h"
 #include "outputbuffer.h"
 #include "variabletreeview.h"
+#include "programtreeview.h"
+#include "instructionset.h"
 
 #include <gtk/gtk.h>
 #include <gdk/gdk.h>
@@ -26,6 +28,9 @@ int main(int argc, char *argv[])
 	GObject *outputBuffer;
 	GObject *outputText;
 	GObject *varTreeView;
+	GObject *progTreeView;
+
+	setInstructionSet();//Must make a destroy function
 
 	gtk_init(&argc, &argv);
 
@@ -61,6 +66,9 @@ int main(int argc, char *argv[])
 
 	varTreeView = gtk_builder_get_object(builder, "variable_view_tree");
 	variable_tree_view_init(GTK_TREE_VIEW(varTreeView));
+
+	progTreeView = gtk_builder_get_object(builder, "program_view_tree");
+	program_tree_view_init(GTK_TREE_VIEW(progTreeView));
 
 
 	gtk_main();

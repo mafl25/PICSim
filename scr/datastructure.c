@@ -4,6 +4,7 @@
 #include "outputbuffer.h"
 #include "customstring.h"
 #include "asmkeywords.h"
+#include "procesor.h"
 
 #include <gtk/gtk.h>
 #include <gtksourceview/gtksource.h>
@@ -73,11 +74,15 @@ void text_struct_init(textStruct *text, GtkBuilder *builder)
 
 	gtk_label_set_text(GTK_LABEL(text->label), UNSAVED_FILE);
 
+	text->programMemory = malloc(sizeof(struct programData) * (MAX_PROGRAM_MEMORY + 1));
+	text->programBuilt = FALSE;
+
 	text->isSaved = TRUE;
 }
 
 void text_struct_destroy(textStruct *text)
 {
+	free(text->programMemory);
 	g_free(text->filename);
 	g_object_unref(text->programTextView);
 	g_object_unref(text->programBuffer);

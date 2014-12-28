@@ -6,12 +6,11 @@
 #define C 0x01
 #define DC 0x02
 #define Z 0x04
-#define LAST_RAM_ADDRESS 0x0A
 #define STACK_SIZE 0x8
 
 
 //Data memory as array of bytes
-static uint8_t dataMemory[LAST_RAM_ADDRESS + 1];
+static uint8_t dataMemory[LAST_RAM_ADDRESS + 1] = {0};
 
 //stack for functions
 struct stack
@@ -19,7 +18,7 @@ struct stack
 	uint16_t callStack[STACK_SIZE];
 	int top;
 };
-static struct stack picStack;
+static struct stack picStack = {{0}, 0};
 
 //W register as an 8 bit register
 static uint8_t W;
@@ -38,6 +37,23 @@ void setDataMemory(uint8_t address, uint8_t value)
 uint8_t getDataMemory(uint8_t address)
 {
 	return dataMemory[address & 0x7F];
+}
+
+void resetDataMemory(void)
+{
+	int j;
+	for (j = 0; j < LAST_RAM_ADDRESS + 1; ++j) 
+		dataMemory[j] = 0;
+	W = 0;
+	PC = 0;
+	PCTemp = 0;
+	writtenPC = 0;
+	incIgnore = 0;
+
+	for (j = 0; j < STACK_SIZE; ++j) 
+		picStack.callStack[j] = 0;
+
+	picStack.top = 0;
 }
 
 void incrementPC(void)
@@ -79,6 +95,11 @@ void setPC(uint16_t value)
 	incIgnore = 2;
 	writtenPC = true;
 	PCTemp = value;
+}
+
+void resetPC(void)
+{
+	PC = 0;
 }
 
 uint16_t getPC(void)
@@ -128,6 +149,8 @@ void setZ(bool status)
 		setDataMemory(STATUS_REG, (getDataMemory(STATUS_REG) | Z));
 	else if (status == false)
 		setDataMemory(STATUS_REG, (getDataMemory(STATUS_REG) & ~Z));
+
+	printf("Fue cero\n");
 }
 
 uint8_t getZ(void)
@@ -137,7 +160,7 @@ uint8_t getZ(void)
 
 void stackPush(uint16_t value)
 {
-	uint16_t tempValue;
+	//uint16_t tempValue;
 	int j;
 
 	if(!stackIsFull()){
@@ -145,7 +168,7 @@ void stackPush(uint16_t value)
 		picStack.top++;
 	}else{
 		for (j = 0; j < STACK_SIZE - 1; j++){
-			tempValue = picStack.callStack[j];
+	//		tempValue = picStack.callStack[j];
 			picStack.callStack[j] = picStack.callStack[j + 1];
 		}
 		picStack.callStack[j] = value;

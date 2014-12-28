@@ -88,7 +88,7 @@ void *vstring_constructor(void *_self, va_list *pa)
 	uint64_t elem_size = sizeof(char);
 
 	if(size < 0 && self)
-		size = strlen(string) + 1;
+		size = utf8_char_number(string, -1);
 
 	self = vector_new(self, NULL, size, elem_size);
 	NULL_RETURN(self)

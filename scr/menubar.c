@@ -6,7 +6,9 @@
 #include "outputbuffer.h"
 #include "customstring.h"
 #include "variabletreeview.h"
+#include "programtreeview.h"
 #include "vstring.h"
+#include "regAndMem.h"
 
 #include <gtk/gtk.h>
 #include <gtksourceview/gtksource.h>
@@ -262,20 +264,30 @@ gboolean build_program_cb(GtkWidget *widget, gpointer data)
 	if (output)
 		output = labels_org_replace(program, labels, orgs);
 
+	if (output)
+		output = load_program(program, text->programMemory);
+
 	output_print_string(program, true);
 
-	if(output){
+	if (output) {
 		variable_tree_view_clear();
 		int j;
 		char *varName;
 		uint64_t address;
 		struct VString *string;
+		char *status = "STATUS";
+		variable_tree_view_append_row(status, 0x0, 0x0);	
 		for (j = 0; get_element_at(variables->variableList, &string, j); ++j){
 			varName = get_data(string);
 			get_element_at(variables->variableAddress, &address, j);
-			variable_tree_view_append_row(varName, address, 0xA);	
+			variable_tree_view_append_row(varName, address, 0x0);	
 			free(varName);
 		}
+	}
+
+	if (output) {
+		program_tree_view_clear();
+		program_tree_view_add_program(text->programMemory);
 	}
 
 	org_array_destroy(orgs);
@@ -287,8 +299,25 @@ gboolean build_program_cb(GtkWidget *widget, gpointer data)
 		output_print("Build failed.", TRUE);
 	else
 		output_print("Build succesful.", TRUE);
+	
+	text->programBuilt = output;
+	//Necesito algo que me resetee la memoria
+	resetDataMemory();
 
 	return output;
+}
+
+gboolean step_program_cb(GtkWidget *widget, gpointer data)
+{
+	textStruct *text = (textStruct *)data;
+
+	if (!text->programBuilt) 
+		return FALSE;
+
+	step_instruction(text->programMemory);
+	variable_tree_view_update();
+
+	return TRUE;
 }
 
 //-------------------------------------------------------------------------------------------------------
@@ -341,5 +370,8 @@ void build_menubar(GtkBuilder *builder, textStruct *text, GtkWindow *window)
 
 	menu_item = gtk_builder_get_object(builder, "build_menu");
 	g_signal_connect(menu_item, "activate", G_CALLBACK(build_program_cb), (gpointer)(text));
+
+	menu_item = gtk_builder_get_object(builder, "next_menu");
+	g_signal_connect(menu_item, "activate", G_CALLBACK(step_program_cb), (gpointer)(text));
 }
 
